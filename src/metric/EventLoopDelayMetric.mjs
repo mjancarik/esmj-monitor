@@ -1,6 +1,6 @@
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 
-import { Metric } from './metric.mjs';
+import { Metric } from './Metric.mjs';
 
 export class EventLoopDelayMetric extends Metric {
   #histogram = null;
