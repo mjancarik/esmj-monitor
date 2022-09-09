@@ -1,3 +1,12 @@
+## [0.0.5](https://github.com/mjancarik/esmj-monitor/compare/v0.0.4...v0.0.5) (2022-09-09)
+
+
+### Bug Fixes
+
+* 🐛 monitor stop method clear interval ([3caf06d](https://github.com/mjancarik/esmj-monitor/commit/3caf06dd916249fa62506c12e5287f85b7a1c7b1))
+
+
+
 ## [0.0.4](https://github.com/mjancarik/esmj-monitor/compare/v0.0.3...v0.0.4) (2022-09-09)
 
 
