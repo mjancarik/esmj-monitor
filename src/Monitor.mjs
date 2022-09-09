@@ -43,6 +43,7 @@ export class Monitor {
   }
 
   stop() {
+    clearInterval(this.#intervalId);
     this.#runMetricMethod('stop', this.#options);
   }
 
@@ -55,7 +56,7 @@ export class Monitor {
   }
 
   #measure() {
-    this.intervalId = setInterval(() => {
+    this.#intervalId = setInterval(() => {
       this.#runMetricMethod('beforeMeasure', this.#options);
       const metrics = this.#runMetricMethod('measure', this.#options);
       this.#notify(metrics);
