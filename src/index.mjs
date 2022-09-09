@@ -6,6 +6,7 @@ import { EventLoopUtilizationMetric } from './metric/EventLoopUtilizationMetric.
 import { LoadAverageMetric } from './metric/LoadAverageMetric.mjs';
 import { MemoryUsageMetric } from './metric/MemoryUsageMetric.mjs';
 import { GCMetric } from './metric/GCMetric.mjs';
+import { ProcessMetric } from './metric/ProcessMetric.mjs';
 
 function createMonitor(options) {
   const cpuUsageMetric = new CPUUsageMetric();
@@ -14,6 +15,7 @@ function createMonitor(options) {
   const loadAverageMetric = new LoadAverageMetric();
   const memoryUsageMetric = new MemoryUsageMetric();
   const gcMetric = new GCMetric();
+  const processMetric = new ProcessMetric();
 
   const monitor = new Monitor(options);
 
@@ -23,6 +25,7 @@ function createMonitor(options) {
   monitor.add(loadAverageMetric);
   monitor.add(memoryUsageMetric);
   monitor.add(gcMetric);
+  monitor.add(processMetric);
 
   return { monitor };
 }
@@ -36,4 +39,5 @@ export {
   EventLoopUtilizationMetric,
   LoadAverageMetric,
   MemoryUsageMetric,
+  ProcessMetric,
 };
