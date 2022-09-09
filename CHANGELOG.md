@@ -1,3 +1,12 @@
+## [0.0.3](https://github.com/mjancarik/esmj-monitor/compare/v0.0.2...v0.0.3) (2022-09-09)
+
+
+### Features
+
+* 🎸 add process metric ([4c6cb06](https://github.com/mjancarik/esmj-monitor/commit/4c6cb0651d6f3fefeb777dd84456ebce6e542ab0))
+
+
+
 ## 0.0.2 (2022-09-07)
 
 
