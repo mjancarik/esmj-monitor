@@ -25,7 +25,7 @@
     "preversion": "npm test && npm run lint",
     "version": "npm run changelog && git add CHANGELOG.md",
     "postversion": "git push && git push --tags",
-    "build": "node_modules/.bin/rollup -c",
+    "build": "node_modules/.bin/rollup -c --bundleConfigAsCjs",
     "test": "NODE_OPTIONS=--experimental-vm-modules ./node_modules/.bin/jest --no-watchman -c ./jest.config.js",
     "lint:cmd": "eslint -c ./.eslintrc.js --ignore-path ./.prettierignore  --no-eslintrc",
     "lint": "npm run lint:cmd -- './src/**/*.{mjs,cjs,js,jsx}'",
