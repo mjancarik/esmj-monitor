@@ -7,8 +7,9 @@ import { LoadAverageMetric } from './metric/LoadAverageMetric.mjs';
 import { MemoryUsageMetric } from './metric/MemoryUsageMetric.mjs';
 import { GCMetric } from './metric/GCMetric.mjs';
 import { ProcessMetric } from './metric/ProcessMetric.mjs';
+import { MetricsHistory } from './MetricsHistory.mjs';
 
-function createMonitor(options) {
+function createMonitoring(options) {
   const cpuUsageMetric = new CPUUsageMetric();
   const eventLoopDelayMetric = new EventLoopDelayMetric();
   const eventLoopUtilizationMetric = new EventLoopUtilizationMetric();
@@ -17,7 +18,10 @@ function createMonitor(options) {
   const gcMetric = new GCMetric();
   const processMetric = new ProcessMetric();
 
-  const monitor = new Monitor(options);
+  const monitor = new Monitor(options?.monitor);
+  const metricsHistory = new MetricsHistory(options?.metricsHistory);
+
+  monitor.subscribe(metricsHistory);
 
   monitor.add(cpuUsageMetric);
   monitor.add(eventLoopDelayMetric);
@@ -27,12 +31,13 @@ function createMonitor(options) {
   monitor.add(gcMetric);
   monitor.add(processMetric);
 
-  return { monitor };
+  return { monitor, metricsHistory };
 }
 
 export {
-  createMonitor,
+  createMonitoring,
   Monitor,
+  MetricsHistory,
   Metric,
   CPUUsageMetric,
   EventLoopDelayMetric,
@@ -40,4 +45,5 @@ export {
   LoadAverageMetric,
   MemoryUsageMetric,
   ProcessMetric,
+  GCMetric,
 };

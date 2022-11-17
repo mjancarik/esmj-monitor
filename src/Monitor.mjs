@@ -1,10 +1,12 @@
-export class Monitor {
+import { Observable } from './observerPattern.mjs';
+
+export class Monitor extends Observable {
   #options = { interval: 1000 };
   #intervalId = null;
   #metrics = [];
-  #observers = [];
 
   constructor(options) {
+    super();
     this.#options = { ...this.#options, ...options };
   }
 
@@ -22,20 +24,6 @@ export class Monitor {
     this.#metrics.splice(index, 1);
   }
 
-  subscribe(observer) {
-    this.#observers.push(observer);
-
-    return () => {
-      this.unsubscribe(observer);
-    };
-  }
-
-  unsubscribe(observer) {
-    const index = this.#observers.indexOf(observer);
-
-    this.#observers.splice(index, 1);
-  }
-
   start() {
     this.#runMetricMethod('start', this.#options);
 
@@ -45,6 +33,7 @@ export class Monitor {
   stop() {
     clearInterval(this.#intervalId);
     this.#runMetricMethod('stop', this.#options);
+    this.complete();
   }
 
   #runMetricMethod(method, args) {
@@ -65,8 +54,10 @@ export class Monitor {
   }
 
   #notify(...rest) {
-    this.#observers.forEach((observer) => {
-      observer(...rest);
-    });
+    try {
+      this.next(...rest);
+    } catch (error) {
+      this.error(error);
+    }
   }
 }
