@@ -43,8 +43,8 @@ describe('Monitor', () => {
     monitor.add(metric);
     monitor.subscribe((metrics) => {
       expect(metrics).toMatchInlineSnapshot(`
-        Object {
-          "custom": Object {
+        {
+          "custom": {
             "metric1": 1,
           },
         }
