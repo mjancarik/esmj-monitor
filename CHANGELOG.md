@@ -1,3 +1,12 @@
+# [0.1.0](https://github.com/mjancarik/esmj-monitor/compare/v0.0.5...v0.1.0) (2022-11-17)
+
+
+### Features
+
+* 🎸 add metrics history for calculating percentile ([958992f](https://github.com/mjancarik/esmj-monitor/commit/958992f36878eb153d10dd5a7a20fc453b930ea5))
+
+
+
 ## [0.0.5](https://github.com/mjancarik/esmj-monitor/compare/v0.0.4...v0.0.5) (2022-09-09)
 
 
