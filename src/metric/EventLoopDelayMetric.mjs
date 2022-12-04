@@ -1,6 +1,7 @@
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 
 import { Metric } from './Metric.mjs';
+import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
 
 export class EventLoopDelayMetric extends Metric {
   #histogram = null;
@@ -17,11 +18,13 @@ export class EventLoopDelayMetric extends Metric {
   measure({ interval }) {
     return {
       eventLoopDelay: {
-        min: this.#histogram.min / (interval * 1000),
-        max: this.#histogram.max / (interval * 1000),
-        mean: this.#histogram.mean / (interval * 1000),
-        stddev: this.#histogram.stddev / (interval * 1000),
-        percentile80: this.#histogram.percentile(80) / (interval * 1000),
+        min: roundToTwoDecimal(this.#histogram.min / (interval * 1000)),
+        max: roundToTwoDecimal(this.#histogram.max / (interval * 1000)),
+        mean: roundToTwoDecimal(this.#histogram.mean / (interval * 1000)),
+        stddev: roundToTwoDecimal(this.#histogram.stddev / (interval * 1000)),
+        percentile80: roundToTwoDecimal(
+          this.#histogram.percentile(80) / (interval * 1000)
+        ),
       },
     };
   }

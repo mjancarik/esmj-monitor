@@ -1,5 +1,6 @@
 import { cpuUsage } from 'node:process';
 import { Metric } from './Metric.mjs';
+import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
 
 export class CPUUsageMetric extends Metric {
   #cpuUsage = null;
@@ -15,8 +16,9 @@ export class CPUUsageMetric extends Metric {
       cpuUsage: {
         user: cpuUsageData.user,
         system: cpuUsageData.system,
-        percent:
-          (100 * (cpuUsageData.user + cpuUsageData.system)) / (interval * 1000),
+        percent: roundToTwoDecimal(
+          (100 * (cpuUsageData.user + cpuUsageData.system)) / (interval * 1000)
+        ),
       },
     };
   }

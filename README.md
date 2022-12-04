@@ -25,25 +25,26 @@ const { monitor, metricsHistory } = new createMonitoring();
 const unsubscribe = monitor.subscribe((metrics) => {
   console.log(metrics);
 //   {
-//   cpuUsage: { user: 1692, system: 925, percent: 0.2617 },
+//   cpuUsage: { user: 1692, system: 925, percent: 0.26 },
 //   eventLoopDelay: {
-//     min: 20.0704,
-//     max: 21.151743,
-//     mean: 20.785241043478262,
-//     stddev: 0.3817646061991465,
-//     percentile80: 21.086207
+//     min: 20.07,
+//     max: 21.15,
+//     mean: 20.78,
+//     stddev: 0.38,
+//     percentile80: 21.08
 //   },
 //   eventLoopUtilization: {
-//     idle: 992.720965999999,
-//     active: 7.85202197369108,
-//     utilization: 0.00784752543599303
+//     idle: 992.72,
+//     active: 7.85,
+//     utilization: 0.01
 //   },
 //   loadAverage: {
-//     minute1: 3.38623046875,
-//     minute5: 8.2880859375,
-//     minute15: 9.15283203125
+//     minute1: 3.38,
+//     minute5: 8.28,
+//     minute15: 9.15
 //   },
 //   memoryUsage: {
+//     percent: 5.23,
 //     rss: 54.2,
 //     heapTotal: 20.2,
 //     heapUsed: 17.74,

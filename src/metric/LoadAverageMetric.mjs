@@ -1,6 +1,7 @@
 import { loadavg } from 'node:os';
 
 import { Metric } from './Metric.mjs';
+import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
 
 export class LoadAverageMetric extends Metric {
   measure() {
@@ -8,9 +9,9 @@ export class LoadAverageMetric extends Metric {
 
     return {
       loadAverage: {
-        minute1,
-        minute5,
-        minute15,
+        minute1: roundToTwoDecimal(minute1),
+        minute5: roundToTwoDecimal(minute5),
+        minute15: roundToTwoDecimal(minute15),
       },
     };
   }

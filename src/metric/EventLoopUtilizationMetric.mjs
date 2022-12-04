@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks';
 
 import { Metric } from './Metric.mjs';
+import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
 
 const { eventLoopUtilization } = performance;
 
@@ -17,11 +18,17 @@ export class EventLoopUtilizationMetric extends Metric {
   }
 
   measure() {
+    const eventLoopUtilizationData = eventLoopUtilization(
+      this.#eventLoopUtilizationDataEnd,
+      this.#eventLoopUtilizationDataStart
+    );
+
     return {
-      eventLoopUtilization: eventLoopUtilization(
-        this.#eventLoopUtilizationDataEnd,
-        this.#eventLoopUtilizationDataStart
-      ),
+      eventLoopUtilization: {
+        idle: roundToTwoDecimal(eventLoopUtilizationData.idle),
+        active: roundToTwoDecimal(eventLoopUtilizationData.active),
+        utilization: roundToTwoDecimal(eventLoopUtilizationData.utilization),
+      },
     };
   }
 

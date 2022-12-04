@@ -1,4 +1,4 @@
-import { Observable } from './observerPattern.mjs';
+import { Observable } from '@esmj/observable';
 
 export class Monitor extends Observable {
   #options = { interval: 1000 };

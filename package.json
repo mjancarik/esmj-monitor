@@ -79,5 +79,8 @@
     "commitizen": {
       "path": "git-cz"
     }
+  },
+  "dependencies": {
+    "@esmj/observable": "^0.0.5"
   }
 }

@@ -1,6 +1,6 @@
-import { ObserverInterface } from './observerPattern.mjs';
+import { Observer } from '@esmj/observable';
 
-export class MetricsHistory extends ObserverInterface {
+export class MetricsHistory extends Observer {
   #options = { limit: 10 };
   #history = [];
 
