@@ -1,3 +1,12 @@
+# [0.2.0](https://github.com/mjancarik/esmj-monitor/compare/v0.1.1...v0.2.0) (2022-12-04)
+
+
+### Features
+
+* 🎸 add metrics history ([1e321c2](https://github.com/mjancarik/esmj-monitor/commit/1e321c22d857ba4ea072c28cd2236ff840c18adc))
+
+
+
 ## [0.1.1](https://github.com/mjancarik/esmj-monitor/compare/v0.1.0...v0.1.1) (2022-11-17)
 
 
