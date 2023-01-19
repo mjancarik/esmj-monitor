@@ -1,12 +1,16 @@
 import { Observer } from '@esmj/observable';
 
 export class MetricsHistory extends Observer {
-  #options = { limit: 10 };
+  #options = { limit: 60 };
   #history = [];
 
   constructor(options) {
     super();
     this.#options = { ...this.#options, ...options };
+  }
+
+  get size() {
+    return this.#history.length;
   }
 
   complete() {

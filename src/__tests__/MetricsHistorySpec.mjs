@@ -70,5 +70,6 @@ describe('MetricsHistory', () => {
     expect(percentile25).toMatchInlineSnapshot(`4`);
     expect(percentile20).toMatchInlineSnapshot(`2.6000000000000005`);
     expect(percentile0).toMatchInlineSnapshot(`1`);
+    expect(metricsHistory.size).toEqual(6);
   });
 });

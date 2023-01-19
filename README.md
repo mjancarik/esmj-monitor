@@ -135,7 +135,7 @@ Configure options for the new instance of MetricsHistory.
 ##### options.limit?
 
 Type: `integer`
-Default: `10`
+Default: `60`
 
 FIFO size of array for calculating percentile.
 
