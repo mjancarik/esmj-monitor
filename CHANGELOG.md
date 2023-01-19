@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/mjancarik/esmj-monitor/compare/v0.2.0...v0.3.0) (2023-01-19)
+
+
+### Features
+
+* 🎸 increase default limit and add new size property ([2527f25](https://github.com/mjancarik/esmj-monitor/commit/2527f25edd2493fc10b6de0bc4a3866881f5710b))
+
+
+
 # [0.2.0](https://github.com/mjancarik/esmj-monitor/compare/v0.1.1...v0.2.0) (2022-12-04)
 
 

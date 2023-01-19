@@ -1,6 +1,6 @@
 {
   "name": "@esmj/monitor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Node.js performance measurement metrics (cpu, memory, event loop, gc)",
   "keywords": [
     "memory",
