@@ -54,7 +54,7 @@ describe('MetricsHistory', () => {
     });
   });
 
-  it('should measure defined metric1', () => {
+  it('should get percentile for defined metric', () => {
     const percentile100 = metricsHistory.percentile('cpuUsage.percent', 100);
     const percentile80 = metricsHistory.percentile('cpuUsage.percent', 80);
     const percentile75 = metricsHistory.percentile('cpuUsage.percent', 75);
@@ -71,5 +71,64 @@ describe('MetricsHistory', () => {
     expect(percentile20).toMatchInlineSnapshot(`2.6000000000000005`);
     expect(percentile0).toMatchInlineSnapshot(`1`);
     expect(metricsHistory.size).toEqual(6);
+  });
+
+  describe('trend method', () => {
+    it('should return linear regression trend for empty metrics history', () => {
+      metricsHistory = new MetricsHistory();
+      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+
+      expect(trend.slope).toMatchInlineSnapshot(`0`);
+      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
+      expect(trend.predict()).toMatchInlineSnapshot(`0`);
+    });
+
+    it('should return linear regression trend for one metrics history', () => {
+      metricsHistory = new MetricsHistory();
+      metricsHistory.next({
+        cpuUsage: { user: 900, system: 400, percent: 10 },
+        memoryUsage: {
+          rss: 120,
+          heapTotal: 80,
+        },
+      });
+      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+
+      expect(trend.slope).toMatchInlineSnapshot(`0`);
+      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
+      expect(trend.predict()).toMatchInlineSnapshot(`0`);
+    });
+
+    it('should return linear regression trend for two metrics history', () => {
+      metricsHistory = new MetricsHistory();
+      metricsHistory.next({
+        cpuUsage: { user: 900, system: 400, percent: 10 },
+        memoryUsage: {
+          rss: 120,
+          heapTotal: 80,
+        },
+      });
+      metricsHistory.next({
+        cpuUsage: { user: 900, system: 400, percent: 20 },
+        memoryUsage: {
+          rss: 120,
+          heapTotal: 80,
+        },
+      });
+
+      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+
+      expect(trend.slope).toMatchInlineSnapshot(`10`);
+      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
+      expect(trend.predict()).toMatchInlineSnapshot(`30`);
+    });
+
+    it('should return linear regression trend for defined metric', () => {
+      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+
+      expect(trend.slope).toMatchInlineSnapshot(`6.5`);
+      expect(trend.yIntercept).toMatchInlineSnapshot(`2.5`);
+      expect(trend.predict()).toMatchInlineSnapshot(`41.5`);
+    });
   });
 });

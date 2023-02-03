@@ -32,7 +32,24 @@ export class MetricsHistory extends Observer {
   percentile(key, number) {
     const array = this.#getValues(key);
 
-    return this.#calculate(array, number);
+    return this.#calculatePercentile(array, number);
+  }
+
+  trend(key, limit) {
+    let array = this.#getValues(key);
+
+    array = array.slice(
+      !limit || limit > array.length ? 0 : array.length - limit,
+      array.length
+    );
+
+    const { slope, yIntercept } = this.#getLinearRegression(array);
+
+    return {
+      slope,
+      yIntercept,
+      predict: (x = array.length + 1) => slope * x + yIntercept,
+    };
   }
 
   #getValues(key) {
@@ -45,7 +62,39 @@ export class MetricsHistory extends Observer {
     });
   }
 
-  #calculate(array, number) {
+  #getLinearRegression(array) {
+    const { sumY, sumX, sumX2, sumXY } = array.reduce(
+      (result, value, index) => {
+        const x = value?.x ?? index + 1;
+        const y = value?.y ?? value;
+        result.sumX += x;
+        result.sumY += y;
+        result.sumX2 += x * x;
+        result.sumXY += x * y;
+
+        return result;
+      },
+      {
+        sumY: 0,
+        sumX: 0,
+        sumX2: 0,
+        sumXY: 0,
+      }
+    );
+
+    const divisor = array.length * sumX2 - sumX * sumX;
+
+    if (divisor === 0) {
+      return { slope: 0, yIntercept: 0 };
+    }
+
+    const yIntercept = (sumY * sumX2 - sumX * sumXY) / divisor;
+    const slope = (array.length * sumXY - sumX * sumY) / divisor;
+
+    return { slope, yIntercept };
+  }
+
+  #calculatePercentile(array, number) {
     if (!array.length) {
       return undefined;
     }

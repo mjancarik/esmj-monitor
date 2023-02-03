@@ -111,7 +111,7 @@ Returns an unsubscribe method.
 Remove subscription.
 
 #### add(metric)
-Monitoring start measure node metric.
+Monitoring add measure new metric.
 
 ##### metric
 
@@ -137,10 +137,10 @@ Configure options for the new instance of MetricsHistory.
 Type: `integer`
 Default: `60`
 
-FIFO size of array for calculating percentile.
+FIFO size of array for calculating percentile and linear regressions.
 
-#### percentile(key, value)
-Monitoring start measure node metric.
+#### percentile(key, number)
+Returns defined percentile for measured metric
 
 ##### key
 
@@ -148,8 +148,23 @@ Type: `String`
 
 Path in measured metric structure.
 
-##### value
+##### number
 
 Type: `Number`
 
 Percentile number for FIFO array
+
+#### trend(key, limit)
+Returns linear regression variables `slope`, `yIntercept` and `predict` function for measured metric.
+
+##### key
+
+Type: `String`
+
+Path in measured metric structure.
+
+##### limit
+
+Type: `Number`
+
+Defined how much records use for calculating linear regression. Default is use all records from FIFO array. 
