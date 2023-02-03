@@ -1,3 +1,12 @@
+# [0.4.0](https://github.com/mjancarik/esmj-monitor/compare/v0.3.0...v0.4.0) (2023-02-03)
+
+
+### Features
+
+* 🎸 add trend function to metrcis history ([acadc6d](https://github.com/mjancarik/esmj-monitor/commit/acadc6d2ef17829a3552bab9f763ff2d0aa7bc00))
+
+
+
 # [0.3.0](https://github.com/mjancarik/esmj-monitor/compare/v0.2.0...v0.3.0) (2023-01-19)
 
 
