@@ -1,3 +1,17 @@
+# [0.5.0](https://github.com/mjancarik/esmj-monitor/compare/v0.4.0...v0.5.0) (2023-02-16)
+
+
+### Features
+
+* 🎸 update to esmj/emitter@0.1.0 ([2def639](https://github.com/mjancarik/esmj-monitor/commit/2def6396d52210983075dd8e8d3ba20166b84905))
+
+
+### BREAKING CHANGES
+
+* 🧨 Subscribe method returns subscription object with unsubscribe method.
+
+
+
 # [0.4.0](https://github.com/mjancarik/esmj-monitor/compare/v0.3.0...v0.4.0) (2023-02-03)
 
 
