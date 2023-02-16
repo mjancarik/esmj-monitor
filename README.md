@@ -22,7 +22,7 @@ import { createMonitoring } from '@esmj/monitor';
 
 const { monitor, metricsHistory } = new createMonitoring();
 
-const unsubscribe = monitor.subscribe((metrics) => {
+const { unsubscribe } = monitor.subscribe((metrics) => {
   console.log(metrics);
 //   {
 //   cpuUsage: { user: 1692, system: 925, percent: 0.26 },
@@ -105,7 +105,7 @@ Monitoring stop measure node metric.
 #### subscribe(listener)
 Subscribe listener for metrics.
 
-Returns an unsubscribe method.
+Returns a subscription object with unsubscribe method.
 
 #### unsubscribe(listener)
 Remove subscription.

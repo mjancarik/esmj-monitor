@@ -81,6 +81,6 @@
     }
   },
   "dependencies": {
-    "@esmj/observable": "^0.0.5"
+    "@esmj/observable": "^0.1.0"
   }
 }
