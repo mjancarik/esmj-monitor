@@ -1,3 +1,12 @@
+## [0.5.1](https://github.com/mjancarik/esmj-monitor/compare/v0.5.0...v0.5.1) (2023-03-17)
+
+
+### Features
+
+* 🎸 add new memoized percentileMemo and trendMemo functions ([62ff06a](https://github.com/mjancarik/esmj-monitor/commit/62ff06a6762a241e61ff99bf4083766311641016))
+
+
+
 # [0.5.0](https://github.com/mjancarik/esmj-monitor/compare/v0.4.0...v0.5.0) (2023-02-16)
 
 
