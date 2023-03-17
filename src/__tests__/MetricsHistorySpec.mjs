@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 import { MetricsHistory } from '../MetricsHistory.mjs';
 
 describe('MetricsHistory', () => {
@@ -71,6 +73,19 @@ describe('MetricsHistory', () => {
     expect(percentile20).toMatchInlineSnapshot(`2.6000000000000005`);
     expect(percentile0).toMatchInlineSnapshot(`1`);
     expect(metricsHistory.size).toEqual(6);
+    expect(metricsHistory.current).toMatchInlineSnapshot(`
+      {
+        "cpuUsage": {
+          "percent": 30,
+          "system": 900,
+          "user": 1200,
+        },
+        "memoryUsage": {
+          "heapTotal": 80,
+          "rss": 150,
+        },
+      }
+    `);
   });
 
   describe('trend method', () => {
@@ -129,6 +144,54 @@ describe('MetricsHistory', () => {
       expect(trend.slope).toMatchInlineSnapshot(`6.5`);
       expect(trend.yIntercept).toMatchInlineSnapshot(`2.5`);
       expect(trend.predict()).toMatchInlineSnapshot(`41.5`);
+    });
+
+    it('memo function should calculate trend only once for same inputs', () => {
+      const original = metricsHistory.trend.bind(metricsHistory);
+      jest.spyOn(metricsHistory, 'trend').mockImplementation(original);
+      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      const trend = metricsHistory.trendMemo('cpuUsage.percent', 5);
+
+      expect(trend.slope).toMatchInlineSnapshot(`6.5`);
+      expect(trend.yIntercept).toMatchInlineSnapshot(`2.5`);
+      expect(trend.predict()).toMatchInlineSnapshot(`41.5`);
+
+      expect(metricsHistory.trend.mock.calls.length).toEqual(1);
+    });
+
+    it('memo function should recalculate trend for new metrics', () => {
+      metricsHistory = new MetricsHistory();
+
+      const original = metricsHistory.trend.bind(metricsHistory);
+      jest.spyOn(metricsHistory, 'trend').mockImplementation(original);
+
+      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      metricsHistory.next({
+        cpuUsage: { user: 900, system: 400, percent: 10 },
+        memoryUsage: {
+          rss: 120,
+          heapTotal: 80,
+        },
+      });
+      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      metricsHistory.next({
+        cpuUsage: { user: 900, system: 400, percent: 20 },
+        memoryUsage: {
+          rss: 120,
+          heapTotal: 80,
+        },
+      });
+      const trend = metricsHistory.trendMemo('cpuUsage.percent', 5);
+
+      expect(trend.slope).toMatchInlineSnapshot(`10`);
+      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
+      expect(trend.predict()).toMatchInlineSnapshot(`30`);
+
+      expect(metricsHistory.trend.mock.calls.length).toEqual(3);
     });
   });
 });

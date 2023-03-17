@@ -1,4 +1,5 @@
 import { Observer } from '@esmj/observable';
+import { memo } from './memo.mjs';
 
 export class MetricsHistory extends Observer {
   #options = { limit: 60 };
@@ -7,10 +8,17 @@ export class MetricsHistory extends Observer {
   constructor(options) {
     super();
     this.#options = { ...this.#options, ...options };
+
+    this.percentileMemo = memo((...rest) => this.percentile(...rest));
+    this.trendMemo = memo((...rest) => this.trend(...rest));
   }
 
   get size() {
     return this.#history.length;
+  }
+
+  get current() {
+    return this.#history[this.#history.length - 1];
   }
 
   complete() {
@@ -23,6 +31,9 @@ export class MetricsHistory extends Observer {
     if (this.#history.length > this.#options.limit) {
       this.#history.shift();
     }
+
+    this.percentileMemo.clear();
+    this.trendMemo.clear();
   }
 
   error(error) {

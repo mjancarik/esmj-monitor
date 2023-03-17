@@ -22,8 +22,8 @@ import { createMonitoring } from '@esmj/monitor';
 
 const { monitor, metricsHistory } = new createMonitoring();
 
-const { unsubscribe } = monitor.subscribe((metrics) => {
-  console.log(metrics);
+const { unsubscribe } = monitor.subscribe((metric) => {
+  console.log(metric);
 //   {
 //   cpuUsage: { user: 1692, system: 925, percent: 0.26 },
 //   eventLoopDelay: {
@@ -67,9 +67,12 @@ monitor.start();
 setTimeout(() => {
   console.log(metricsHistory.percentile('cpuUsage.percent', 80)); // 1 
   console.log(metricsHistory.percentile('memoryUsage.rss', 80)); // 61
+  console.log(metricsHistory.trend('memoryUsage.rss').predict()); // 65
 }, 5000);
 
 setTimeout(() => {
+  console.log(metricsHistory.size) // 15;
+  console.log(metricsHistory.current) // return last captured metric structure
   unsubscribe();
   monitor.stop();
   console.log(metricsHistory.percentile('cpuUsage.percent', 80)); // undefined 
@@ -154,6 +157,9 @@ Type: `Number`
 
 Percentile number for FIFO array
 
+#### percentileMemo(key, number)
+Memoized version of percentile function. Cache is cleared after capture new metric.
+
 #### trend(key, limit)
 Returns linear regression variables `slope`, `yIntercept` and `predict` function for measured metric.
 
@@ -168,3 +174,6 @@ Path in measured metric structure.
 Type: `Number`
 
 Defined how much records use for calculating linear regression. Default is use all records from FIFO array. 
+
+#### trendMemo(key, number)
+Memoized version of trend function. Cache is cleared after capture new metric.
