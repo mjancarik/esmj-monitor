@@ -21,6 +21,10 @@ export class MetricsHistory extends Observer {
     return this.#history[this.#history.length - 1];
   }
 
+  get history() {
+    return this.#history;
+  }
+
   complete() {
     this.#history = [];
   }
