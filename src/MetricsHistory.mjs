@@ -41,13 +41,13 @@ export class MetricsHistory extends Observer {
   }
 
   percentile(key, number) {
-    const array = this.#getValues(key);
+    const array = this.getValues(key);
 
     return this.#calculatePercentile(array, number);
   }
 
   trend(key, limit) {
-    let array = this.#getValues(key);
+    let array = this.getValues(key);
 
     array = array.slice(
       !limit || limit > array.length ? 0 : array.length - limit,
@@ -63,7 +63,7 @@ export class MetricsHistory extends Observer {
     };
   }
 
-  #getValues(key) {
+  getValues(key) {
     const keys = key?.split('.') ?? [];
 
     return this.#history.map((metric) => {
