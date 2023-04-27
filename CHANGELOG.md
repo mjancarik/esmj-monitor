@@ -1,3 +1,12 @@
+## [0.5.2](https://github.com/mjancarik/esmj-monitor/compare/v0.5.1...v0.5.2) (2023-04-27)
+
+
+### Features
+
+* 🎸 makes method getValues of MetricsHistory public ([53c538f](https://github.com/mjancarik/esmj-monitor/commit/53c538f25eda90b8b64b13cedd6d2bdbcc71d3b1))
+
+
+
 ## [0.5.1](https://github.com/mjancarik/esmj-monitor/compare/v0.5.0...v0.5.1) (2023-03-17)
 
 
