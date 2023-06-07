@@ -1,3 +1,12 @@
+## [0.5.3](https://github.com/mjancarik/esmj-monitor/compare/v0.5.2...v0.5.3) (2023-06-07)
+
+
+### Features
+
+* 🎸 add possibility to register custom statistics ([f2a15b8](https://github.com/mjancarik/esmj-monitor/commit/f2a15b8277c789e3f73da057fbb441b2be268bda))
+
+
+
 ## [0.5.2](https://github.com/mjancarik/esmj-monitor/compare/v0.5.1...v0.5.2) (2023-04-27)
 
 
