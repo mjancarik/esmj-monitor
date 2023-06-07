@@ -1,3 +1,5 @@
+export const IS_MEMO = Symbol('MemoSymbol');
+
 export function memo(func) {
   return (function (func) {
     let cache = {};
@@ -17,6 +19,7 @@ export function memo(func) {
     };
 
     memoized.clear = clear;
+    memoized[IS_MEMO] = true;
 
     return memoized;
   })(func);

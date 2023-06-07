@@ -8,6 +8,14 @@ import { MemoryUsageMetric } from './metric/MemoryUsageMetric.mjs';
 import { GCMetric } from './metric/GCMetric.mjs';
 import { ProcessMetric } from './metric/ProcessMetric.mjs';
 import { MetricsHistory } from './MetricsHistory.mjs';
+import {
+  linearRegression,
+  percentile,
+  medianNoiseReduction,
+  takeLast,
+} from './math.mjs';
+import { memo } from './memo.mjs';
+import { pipe } from '@esmj/observable';
 
 function createMonitoring(options) {
   const cpuUsageMetric = new CPUUsageMetric();
@@ -35,6 +43,12 @@ function createMonitoring(options) {
 }
 
 export {
+  pipe,
+  memo,
+  linearRegression,
+  percentile,
+  medianNoiseReduction,
+  takeLast,
   createMonitoring,
   Monitor,
   MetricsHistory,

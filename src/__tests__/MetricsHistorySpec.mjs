@@ -1,6 +1,9 @@
 import { jest } from '@jest/globals';
 
 import { MetricsHistory } from '../MetricsHistory.mjs';
+import { medianNoiseReduction, linearRegression, takeLast } from '../math.mjs';
+import { memo } from '../memo.mjs';
+import { pipe } from '@esmj/observable';
 
 describe('MetricsHistory', () => {
   let metricsHistory;
@@ -192,6 +195,56 @@ describe('MetricsHistory', () => {
       expect(trend.predict()).toMatchInlineSnapshot(`30`);
 
       expect(metricsHistory.trend.mock.calls.length).toEqual(3);
+    });
+  });
+
+  describe('custom statistics', () => {
+    let passArgs = null;
+
+    beforeEach(() => {
+      passArgs = jest.fn((arg) => arg);
+      metricsHistory.add(
+        'trendCPUUsage',
+        memo(
+          pipe(
+            metricsHistory.from('cpuUsage.percent'),
+            passArgs,
+            takeLast(5),
+            medianNoiseReduction(),
+            linearRegression()
+          )
+        )
+      );
+    });
+
+    afterEach(() => {
+      passArgs.mockReset();
+    });
+
+    it('should return right value from custom statistic', () => {
+      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
+    });
+
+    it('should calculate value only once', () => {
+      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
+      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
+      expect(passArgs).toHaveBeenCalledTimes(1);
+    });
+
+    it('should calculate value only once for same inputs', () => {
+      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
+      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
+      expect(passArgs).toHaveBeenCalledTimes(1);
+      metricsHistory.next({
+        cpuUsage: { user: 900, system: 400, percent: 10 },
+        memoryUsage: {
+          rss: 120,
+          heapTotal: 80,
+        },
+      });
+      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(27.5);
+      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(27.5);
+      expect(passArgs).toHaveBeenCalledTimes(2);
     });
   });
 });
