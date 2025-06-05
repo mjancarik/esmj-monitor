@@ -1,3 +1,9 @@
+## <small>0.5.4 (2025-06-05)</small>
+
+* chore: 🤖 update dependencies ([acb8ec0](https://github.com/mjancarik/esmj-monitor/commit/acb8ec0))
+
+
+
 ## [0.5.3](https://github.com/mjancarik/esmj-monitor/compare/v0.5.2...v0.5.3) (2023-06-07)
 
 
