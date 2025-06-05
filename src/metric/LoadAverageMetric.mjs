@@ -5,7 +5,7 @@ import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
 
 export class LoadAverageMetric extends Metric {
   measure() {
-    let [minute1, minute5, minute15] = loadavg();
+    const [minute1, minute5, minute15] = loadavg();
 
     return {
       loadAverage: {

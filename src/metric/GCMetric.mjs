@@ -9,7 +9,7 @@ export class GCMetric extends Metric {
     this.#performanceObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
 
-      if (entries && entries[0]) {
+      if (entries?.[0]) {
         this.#entry = entries[0];
       }
       /* 

@@ -1,7 +1,7 @@
 export const IS_MEMO = Symbol('MemoSymbol');
 
 export function memo(func) {
-  return (function (func) {
+  return ((func) => {
     let cache = {};
 
     const keyGenerator = (...rest) => rest.join('-');

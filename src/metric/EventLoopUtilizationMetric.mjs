@@ -20,7 +20,7 @@ export class EventLoopUtilizationMetric extends Metric {
   measure() {
     const eventLoopUtilizationData = eventLoopUtilization(
       this.#eventLoopUtilizationDataEnd,
-      this.#eventLoopUtilizationDataStart
+      this.#eventLoopUtilizationDataStart,
     );
 
     return {

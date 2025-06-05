@@ -23,7 +23,7 @@ export class EventLoopDelayMetric extends Metric {
         mean: roundToTwoDecimal(this.#histogram.mean / (interval * 1000)),
         stddev: roundToTwoDecimal(this.#histogram.stddev / (interval * 1000)),
         percentile80: roundToTwoDecimal(
-          this.#histogram.percentile(80) / (interval * 1000)
+          this.#histogram.percentile(80) / (interval * 1000),
         ),
       },
     };

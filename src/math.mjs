@@ -34,7 +34,7 @@ export function linearRegression() {
         sumX: 0,
         sumX2: 0,
         sumXY: 0,
-      }
+      },
     );
 
     const divisor = array.length * sumX2 - sumX * sumX;
@@ -89,7 +89,7 @@ export function takeLast(size) {
   return function _takeLast(array) {
     return array.slice(
       !size || size > array.length ? 0 : array.length - size,
-      array.length
+      array.length,
     );
   };
 }

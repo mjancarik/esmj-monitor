@@ -1,4 +1,4 @@
-import { pid, ppid, platform, uptime, version } from 'node:process';
+import { pid, platform, ppid, uptime, version } from 'node:process';
 import { Metric } from './Metric.mjs';
 
 export class ProcessMetric extends Metric {

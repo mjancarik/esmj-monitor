@@ -38,7 +38,7 @@ export class Monitor extends Observable {
 
   #runMetricMethod(method, args) {
     return this.#metrics.reduce((result, metric) => {
-      result = { ...result, ...metric[method](args) };
+      Object.assign(result, metric[method](args));
 
       return result;
     }, {});

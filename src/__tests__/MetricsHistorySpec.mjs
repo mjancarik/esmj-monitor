@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals';
 
-import { MetricsHistory } from '../MetricsHistory.mjs';
-import { medianNoiseReduction, linearRegression, takeLast } from '../math.mjs';
-import { memo } from '../memo.mjs';
 import { pipe } from '@esmj/observable';
+import { MetricsHistory } from '../MetricsHistory.mjs';
+import { linearRegression, medianNoiseReduction, takeLast } from '../math.mjs';
+import { memo } from '../memo.mjs';
 
 describe('MetricsHistory', () => {
   let metricsHistory;
@@ -68,13 +68,13 @@ describe('MetricsHistory', () => {
     const percentile20 = metricsHistory.percentile('cpuUsage.percent', 20);
     const percentile0 = metricsHistory.percentile('cpuUsage.percent', 0);
 
-    expect(percentile100).toMatchInlineSnapshot(`45`);
-    expect(percentile80).toMatchInlineSnapshot(`39.00000000000001`);
-    expect(percentile75).toMatchInlineSnapshot(`33.75`);
-    expect(median).toMatchInlineSnapshot(`15`);
-    expect(percentile25).toMatchInlineSnapshot(`4`);
-    expect(percentile20).toMatchInlineSnapshot(`2.6000000000000005`);
-    expect(percentile0).toMatchInlineSnapshot(`1`);
+    expect(percentile100).toMatchInlineSnapshot('45');
+    expect(percentile80).toMatchInlineSnapshot('39.00000000000001');
+    expect(percentile75).toMatchInlineSnapshot('33.75');
+    expect(median).toMatchInlineSnapshot('15');
+    expect(percentile25).toMatchInlineSnapshot('4');
+    expect(percentile20).toMatchInlineSnapshot('2.6000000000000005');
+    expect(percentile0).toMatchInlineSnapshot('1');
     expect(metricsHistory.size).toEqual(6);
     expect(metricsHistory.current).toMatchInlineSnapshot(`
       {
@@ -96,9 +96,9 @@ describe('MetricsHistory', () => {
       metricsHistory = new MetricsHistory();
       const trend = metricsHistory.trend('cpuUsage.percent', 5);
 
-      expect(trend.slope).toMatchInlineSnapshot(`0`);
-      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
-      expect(trend.predict()).toMatchInlineSnapshot(`0`);
+      expect(trend.slope).toMatchInlineSnapshot('0');
+      expect(trend.yIntercept).toMatchInlineSnapshot('0');
+      expect(trend.predict()).toMatchInlineSnapshot('0');
     });
 
     it('should return linear regression trend for one metrics history', () => {
@@ -112,9 +112,9 @@ describe('MetricsHistory', () => {
       });
       const trend = metricsHistory.trend('cpuUsage.percent', 5);
 
-      expect(trend.slope).toMatchInlineSnapshot(`0`);
-      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
-      expect(trend.predict()).toMatchInlineSnapshot(`0`);
+      expect(trend.slope).toMatchInlineSnapshot('0');
+      expect(trend.yIntercept).toMatchInlineSnapshot('0');
+      expect(trend.predict()).toMatchInlineSnapshot('0');
     });
 
     it('should return linear regression trend for two metrics history', () => {
@@ -136,17 +136,17 @@ describe('MetricsHistory', () => {
 
       const trend = metricsHistory.trend('cpuUsage.percent', 5);
 
-      expect(trend.slope).toMatchInlineSnapshot(`10`);
-      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
-      expect(trend.predict()).toMatchInlineSnapshot(`30`);
+      expect(trend.slope).toMatchInlineSnapshot('10');
+      expect(trend.yIntercept).toMatchInlineSnapshot('0');
+      expect(trend.predict()).toMatchInlineSnapshot('30');
     });
 
     it('should return linear regression trend for defined metric', () => {
       const trend = metricsHistory.trend('cpuUsage.percent', 5);
 
-      expect(trend.slope).toMatchInlineSnapshot(`6.5`);
-      expect(trend.yIntercept).toMatchInlineSnapshot(`2.5`);
-      expect(trend.predict()).toMatchInlineSnapshot(`41.5`);
+      expect(trend.slope).toMatchInlineSnapshot('6.5');
+      expect(trend.yIntercept).toMatchInlineSnapshot('2.5');
+      expect(trend.predict()).toMatchInlineSnapshot('41.5');
     });
 
     it('memo function should calculate trend only once for same inputs', () => {
@@ -157,9 +157,9 @@ describe('MetricsHistory', () => {
       metricsHistory.trendMemo('cpuUsage.percent', 5);
       const trend = metricsHistory.trendMemo('cpuUsage.percent', 5);
 
-      expect(trend.slope).toMatchInlineSnapshot(`6.5`);
-      expect(trend.yIntercept).toMatchInlineSnapshot(`2.5`);
-      expect(trend.predict()).toMatchInlineSnapshot(`41.5`);
+      expect(trend.slope).toMatchInlineSnapshot('6.5');
+      expect(trend.yIntercept).toMatchInlineSnapshot('2.5');
+      expect(trend.predict()).toMatchInlineSnapshot('41.5');
 
       expect(metricsHistory.trend.mock.calls.length).toEqual(1);
     });
@@ -190,9 +190,9 @@ describe('MetricsHistory', () => {
       });
       const trend = metricsHistory.trendMemo('cpuUsage.percent', 5);
 
-      expect(trend.slope).toMatchInlineSnapshot(`10`);
-      expect(trend.yIntercept).toMatchInlineSnapshot(`0`);
-      expect(trend.predict()).toMatchInlineSnapshot(`30`);
+      expect(trend.slope).toMatchInlineSnapshot('10');
+      expect(trend.yIntercept).toMatchInlineSnapshot('0');
+      expect(trend.predict()).toMatchInlineSnapshot('30');
 
       expect(metricsHistory.trend.mock.calls.length).toEqual(3);
     });
@@ -211,9 +211,9 @@ describe('MetricsHistory', () => {
             passArgs,
             takeLast(5),
             medianNoiseReduction(),
-            linearRegression()
-          )
-        )
+            linearRegression(),
+          ),
+        ),
       );
     });
 

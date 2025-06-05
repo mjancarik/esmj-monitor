@@ -1,6 +1,6 @@
 import { Observer } from '@esmj/observable';
-import { memo, IS_MEMO } from './memo.mjs';
 import { linearRegression, percentile } from './math.mjs';
+import { IS_MEMO, memo } from './memo.mjs';
 
 export class MetricsHistory extends Observer {
   #options = { limit: 60 };
@@ -60,7 +60,7 @@ export class MetricsHistory extends Observer {
   add(name, func) {
     if (this.custom[name]) {
       throw new Error(
-        `The key "${name}" of custom statistic function is uccupied.`
+        `The key "${name}" of custom statistic function is uccupied.`,
       );
     }
 
@@ -80,7 +80,7 @@ export class MetricsHistory extends Observer {
 
     array = array.slice(
       !limit || limit > array.length ? 0 : array.length - limit,
-      array.length
+      array.length,
     );
 
     return this.#regression(array);

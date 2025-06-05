@@ -17,7 +17,7 @@ export class CPUUsageMetric extends Metric {
         user: cpuUsageData.user,
         system: cpuUsageData.system,
         percent: roundToTwoDecimal(
-          (100 * (cpuUsageData.user + cpuUsageData.system)) / (interval * 1000)
+          (100 * (cpuUsageData.user + cpuUsageData.system)) / (interval * 1000),
         ),
       },
     };

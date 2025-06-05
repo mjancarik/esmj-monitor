@@ -1,21 +1,21 @@
-import { Monitor } from './Monitor.mjs';
-import { Metric } from './metric/Metric.mjs';
-import { CPUUsageMetric } from './metric/CPUUsageMetric.mjs';
-import { EventLoopDelayMetric } from './metric/EventLoopDelayMetric.mjs';
-import { EventLoopUtilizationMetric } from './metric/EventLoopUtilizationMetric.mjs';
-import { LoadAverageMetric } from './metric/LoadAverageMetric.mjs';
-import { MemoryUsageMetric } from './metric/MemoryUsageMetric.mjs';
-import { GCMetric } from './metric/GCMetric.mjs';
-import { ProcessMetric } from './metric/ProcessMetric.mjs';
+import { pipe } from '@esmj/observable';
 import { MetricsHistory } from './MetricsHistory.mjs';
+import { Monitor } from './Monitor.mjs';
 import {
   linearRegression,
-  percentile,
   medianNoiseReduction,
+  percentile,
   takeLast,
 } from './math.mjs';
 import { memo } from './memo.mjs';
-import { pipe } from '@esmj/observable';
+import { CPUUsageMetric } from './metric/CPUUsageMetric.mjs';
+import { EventLoopDelayMetric } from './metric/EventLoopDelayMetric.mjs';
+import { EventLoopUtilizationMetric } from './metric/EventLoopUtilizationMetric.mjs';
+import { GCMetric } from './metric/GCMetric.mjs';
+import { LoadAverageMetric } from './metric/LoadAverageMetric.mjs';
+import { MemoryUsageMetric } from './metric/MemoryUsageMetric.mjs';
+import { Metric } from './metric/Metric.mjs';
+import { ProcessMetric } from './metric/ProcessMetric.mjs';
 
 function createMonitoring(options) {
   const cpuUsageMetric = new CPUUsageMetric();
