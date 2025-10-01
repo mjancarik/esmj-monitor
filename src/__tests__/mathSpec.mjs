@@ -1,7 +1,13 @@
 import {
+  _sum,
+  avg,
+  first,
+  last,
   linearRegression,
   medianNoiseReduction,
   percentile,
+  sum,
+  takeLast,
 } from '../math.mjs';
 
 describe('math', () => {
@@ -81,6 +87,134 @@ describe('math', () => {
         expect(trend.yIntercept).toMatchInlineSnapshot('2.5');
         expect(trend.predict()).toMatchInlineSnapshot('41.5');
       });
+    });
+  });
+
+  describe('takeLast', () => {
+    it('should create new takeLast method', () => {
+      expect(typeof takeLast()).toEqual('function');
+    });
+
+    describe('takeLast method', () => {
+      it('should return the last N elements of an array', () => {
+        const array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        expect(takeLast(3)(array)).toEqual([8, 9, 10]);
+        expect(takeLast(5)(array)).toEqual([6, 7, 8, 9, 10]);
+        expect(takeLast(10)(array)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        expect(takeLast(15)(array)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      });
+
+      it('should handle edge cases', () => {
+        const array = [1, 2, 3];
+
+        expect(takeLast(0)(array)).toEqual([1, 2, 3]);
+        expect(takeLast(-1)(array)).toEqual([]); // Negative values return empty array per implementation
+        expect(takeLast()(array)).toEqual([1, 2, 3]);
+        expect(takeLast(3)([])).toEqual([]);
+      });
+    });
+  });
+
+  describe('first', () => {
+    it('should create new first method', () => {
+      expect(typeof first()).toEqual('function');
+    });
+
+    describe('first method', () => {
+      it('should return the first element of an array', () => {
+        expect(first()([5, 2, 3])).toEqual(5);
+        expect(first()([99])).toEqual(99);
+      });
+
+      it('should return undefined for an empty array', () => {
+        expect(first()([])).toBeUndefined();
+      });
+    });
+  });
+
+  describe('last', () => {
+    it('should create new last method', () => {
+      expect(typeof last()).toEqual('function');
+    });
+
+    describe('last method', () => {
+      it('should return the last element of an array', () => {
+        expect(last()([1, 2, 3])).toEqual(3);
+        expect(last()([99])).toEqual(99);
+      });
+
+      it('should return undefined for an empty array', () => {
+        expect(last()([])).toBeUndefined();
+      });
+    });
+  });
+
+  describe('avg', () => {
+    it('should create new avg method', () => {
+      expect(typeof avg()).toEqual('function');
+    });
+
+    describe('avg method', () => {
+      it('should calculate average of an array', () => {
+        expect(avg()([1, 2, 3, 4, 5])).toEqual(3);
+        expect(avg()([10, 20])).toEqual(15);
+        expect(avg()([7])).toEqual(7);
+      });
+
+      it('should return undefined for an empty array', () => {
+        expect(avg()([])).toBeUndefined();
+      });
+
+      it('should handle non-number values', () => {
+        // According to implementation, avg() returns NaN for non-number values
+        // rather than undefined as in _sum
+        const result1 = avg()([1, 2, 'three']);
+        const result2 = avg()([1, Number.NaN, 3]);
+
+        expect(Number.isNaN(result1) || result1 === undefined).toBeTruthy();
+        expect(Number.isNaN(result2) || result2 === undefined).toBeTruthy();
+      });
+    });
+  });
+
+  describe('sum', () => {
+    it('should create new sum method', () => {
+      expect(typeof sum()).toEqual('function');
+    });
+
+    describe('sum method', () => {
+      it('should calculate sum of an array', () => {
+        expect(sum()([1, 2, 3, 4, 5])).toEqual(15);
+        expect(sum()([10, 20])).toEqual(30);
+        expect(sum()([7])).toEqual(7);
+      });
+
+      it('should return undefined for an empty array', () => {
+        expect(sum()([])).toBeUndefined();
+      });
+
+      it('should return undefined if array contains non-numbers', () => {
+        expect(sum()([1, 2, 'three'])).toBeUndefined();
+        expect(sum()([1, Number.NaN, 3])).toBeUndefined();
+      });
+    });
+  });
+
+  describe('_sum (internal)', () => {
+    it('should calculate sum of an array directly', () => {
+      expect(_sum([1, 2, 3, 4, 5])).toEqual(15);
+      expect(_sum([10, 20])).toEqual(30);
+      expect(_sum([7])).toEqual(7);
+    });
+
+    it('should return undefined for an empty array', () => {
+      expect(_sum([])).toBeUndefined();
+    });
+
+    it('should return undefined if array contains non-numbers', () => {
+      expect(_sum([1, 2, 'three'])).toBeUndefined();
+      expect(_sum([1, Number.NaN, 3])).toBeUndefined();
     });
   });
 });

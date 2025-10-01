@@ -25,6 +25,10 @@ export class Monitor extends Observable {
   }
 
   start() {
+    if (this.#intervalId) {
+      return;
+    }
+
     this.#runMetricMethod('start', this.#options);
 
     this.#measure();

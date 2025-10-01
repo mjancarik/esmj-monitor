@@ -1,6 +1,8 @@
 export function medianNoiseReduction(grouping = 5) {
   return function _medianNoiseReduction(array) {
-    return array.map((value, index, array) => {
+    const newArray = [];
+
+    for (let index = 0; index < array.length; index++) {
       const startIndex =
         index - Math.floor(grouping / 2) < 0
           ? 0
@@ -11,8 +13,10 @@ export function medianNoiseReduction(grouping = 5) {
           : array.length;
       const group = array.slice(startIndex, endIndex);
 
-      return percentile(50)(group);
-    });
+      newArray.push(percentile(50)(group));
+    }
+
+    return newArray;
   };
 }
 
@@ -92,4 +96,47 @@ export function takeLast(size) {
       array.length,
     );
   };
+}
+
+export function first() {
+  return function _first(array) {
+    return array[0];
+  };
+}
+
+export function last() {
+  return function _last(array) {
+    return array[array.length - 1];
+  };
+}
+
+export function avg() {
+  return function _avg(array) {
+    if (!array.length) {
+      return undefined;
+    }
+
+    const sum = _sum(array);
+    return sum / array.length;
+  };
+}
+
+export function sum() {
+  return _sum;
+}
+
+export function _sum(array) {
+  if (!array.length) {
+    return undefined;
+  }
+
+  let result = 0;
+  for (let i = 0; i < array.length; i++) {
+    if (typeof array[i] !== 'number' || Number.isNaN(array[i])) {
+      return undefined;
+    }
+    result += array[i];
+  }
+
+  return result;
 }

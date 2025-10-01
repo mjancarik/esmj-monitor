@@ -2,7 +2,12 @@ import { jest } from '@jest/globals';
 
 import { pipe } from '@esmj/observable';
 import { MetricsHistory } from '../MetricsHistory.mjs';
-import { linearRegression, medianNoiseReduction, takeLast } from '../math.mjs';
+import {
+  linearRegression,
+  medianNoiseReduction,
+  percentile,
+  takeLast,
+} from '../math.mjs';
 import { memo } from '../memo.mjs';
 
 describe('MetricsHistory', () => {
@@ -60,13 +65,34 @@ describe('MetricsHistory', () => {
   });
 
   it('should get percentile for defined metric', () => {
-    const percentile100 = metricsHistory.percentile('cpuUsage.percent', 100);
-    const percentile80 = metricsHistory.percentile('cpuUsage.percent', 80);
-    const percentile75 = metricsHistory.percentile('cpuUsage.percent', 75);
-    const median = metricsHistory.percentile('cpuUsage.percent', 50);
-    const percentile25 = metricsHistory.percentile('cpuUsage.percent', 25);
-    const percentile20 = metricsHistory.percentile('cpuUsage.percent', 20);
-    const percentile0 = metricsHistory.percentile('cpuUsage.percent', 0);
+    const percentile100 = pipe(
+      metricsHistory.from('cpuUsage.percent'),
+      percentile(100),
+    )();
+    const percentile80 = pipe(
+      metricsHistory.from('cpuUsage.percent'),
+      percentile(80),
+    )();
+    const percentile75 = pipe(
+      metricsHistory.from('cpuUsage.percent'),
+      percentile(75),
+    )();
+    const median = pipe(
+      metricsHistory.from('cpuUsage.percent'),
+      percentile(50),
+    )();
+    const percentile25 = pipe(
+      metricsHistory.from('cpuUsage.percent'),
+      percentile(25),
+    )();
+    const percentile20 = pipe(
+      metricsHistory.from('cpuUsage.percent'),
+      percentile(20),
+    )();
+    const percentile0 = pipe(
+      metricsHistory.from('cpuUsage.percent'),
+      percentile(0),
+    )();
 
     expect(percentile100).toMatchInlineSnapshot('45');
     expect(percentile80).toMatchInlineSnapshot('39.00000000000001');
@@ -94,7 +120,11 @@ describe('MetricsHistory', () => {
   describe('trend method', () => {
     it('should return linear regression trend for empty metrics history', () => {
       metricsHistory = new MetricsHistory();
-      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+      const trend = pipe(
+        metricsHistory.from('cpuUsage.percent'),
+        takeLast(5),
+        linearRegression(),
+      )();
 
       expect(trend.slope).toMatchInlineSnapshot('0');
       expect(trend.yIntercept).toMatchInlineSnapshot('0');
@@ -110,7 +140,11 @@ describe('MetricsHistory', () => {
           heapTotal: 80,
         },
       });
-      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+      const trend = pipe(
+        metricsHistory.from('cpuUsage.percent'),
+        takeLast(5),
+        linearRegression(),
+      )();
 
       expect(trend.slope).toMatchInlineSnapshot('0');
       expect(trend.yIntercept).toMatchInlineSnapshot('0');
@@ -134,7 +168,11 @@ describe('MetricsHistory', () => {
         },
       });
 
-      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+      const trend = pipe(
+        metricsHistory.from('cpuUsage.percent'),
+        takeLast(5),
+        linearRegression(),
+      )();
 
       expect(trend.slope).toMatchInlineSnapshot('10');
       expect(trend.yIntercept).toMatchInlineSnapshot('0');
@@ -142,7 +180,11 @@ describe('MetricsHistory', () => {
     });
 
     it('should return linear regression trend for defined metric', () => {
-      const trend = metricsHistory.trend('cpuUsage.percent', 5);
+      const trend = pipe(
+        metricsHistory.from('cpuUsage.percent'),
+        takeLast(5),
+        linearRegression(),
+      )();
 
       expect(trend.slope).toMatchInlineSnapshot('6.5');
       expect(trend.yIntercept).toMatchInlineSnapshot('2.5');
@@ -150,28 +192,42 @@ describe('MetricsHistory', () => {
     });
 
     it('memo function should calculate trend only once for same inputs', () => {
-      const original = metricsHistory.trend.bind(metricsHistory);
-      jest.spyOn(metricsHistory, 'trend').mockImplementation(original);
-      metricsHistory.trendMemo('cpuUsage.percent', 5);
-      metricsHistory.trendMemo('cpuUsage.percent', 5);
-      metricsHistory.trendMemo('cpuUsage.percent', 5);
-      const trend = metricsHistory.trendMemo('cpuUsage.percent', 5);
+      const trendFn = pipe(
+        metricsHistory.from('cpuUsage.percent'),
+        takeLast(5),
+        linearRegression(),
+      );
+      const trendMock = jest.fn().mockImplementation(trendFn);
+      const trendMemo = memo(trendMock);
+      trendMemo();
+      trendMemo();
+      trendMemo();
+
+      const trend = trendMemo();
 
       expect(trend.slope).toMatchInlineSnapshot('6.5');
       expect(trend.yIntercept).toMatchInlineSnapshot('2.5');
       expect(trend.predict()).toMatchInlineSnapshot('41.5');
 
-      expect(metricsHistory.trend.mock.calls.length).toEqual(1);
+      expect(trendMock.mock.calls.length).toEqual(1);
     });
 
     it('memo function should recalculate trend for new metrics', () => {
       metricsHistory = new MetricsHistory();
 
-      const original = metricsHistory.trend.bind(metricsHistory);
-      jest.spyOn(metricsHistory, 'trend').mockImplementation(original);
+      const trendFn = pipe(
+        metricsHistory.from('cpuUsage.percent'),
+        takeLast(5),
+        linearRegression(),
+      );
+      const trendMock = jest.fn().mockImplementation(trendFn);
+      const trendMemo = memo(trendMock);
 
-      metricsHistory.trendMemo('cpuUsage.percent', 5);
-      metricsHistory.trendMemo('cpuUsage.percent', 5);
+      metricsHistory.add('trendCPUUsage', trendMemo);
+
+      metricsHistory.custom.trendCPUUsage();
+      metricsHistory.custom.trendCPUUsage();
+
       metricsHistory.next({
         cpuUsage: { user: 900, system: 400, percent: 10 },
         memoryUsage: {
@@ -179,8 +235,10 @@ describe('MetricsHistory', () => {
           heapTotal: 80,
         },
       });
-      metricsHistory.trendMemo('cpuUsage.percent', 5);
-      metricsHistory.trendMemo('cpuUsage.percent', 5);
+
+      metricsHistory.custom.trendCPUUsage();
+      metricsHistory.custom.trendCPUUsage();
+
       metricsHistory.next({
         cpuUsage: { user: 900, system: 400, percent: 20 },
         memoryUsage: {
@@ -188,13 +246,14 @@ describe('MetricsHistory', () => {
           heapTotal: 80,
         },
       });
-      const trend = metricsHistory.trendMemo('cpuUsage.percent', 5);
+
+      const trend = metricsHistory.custom.trendCPUUsage();
 
       expect(trend.slope).toMatchInlineSnapshot('10');
       expect(trend.yIntercept).toMatchInlineSnapshot('0');
       expect(trend.predict()).toMatchInlineSnapshot('30');
 
-      expect(metricsHistory.trend.mock.calls.length).toEqual(3);
+      expect(trendMock.mock.calls.length).toEqual(3);
     });
   });
 

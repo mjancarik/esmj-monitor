@@ -25,6 +25,7 @@
     "preversion": "npm test && npm run lint",
     "version": "npm run changelog && git add CHANGELOG.md",
     "postversion": "git push && git push --tags",
+    "dev": "node_modules/.bin/rollup --watch -c --bundleConfigAsCjs", 
     "build": "node_modules/.bin/rollup -c --bundleConfigAsCjs",
     "test": "NODE_OPTIONS=--experimental-vm-modules ./node_modules/.bin/jest --no-watchman -c ./jest.config.js",
     "lint": "biome check --no-errors-on-unmatched",

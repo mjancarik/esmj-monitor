@@ -16,8 +16,7 @@ export class MemoryUsageMetric extends Metric {
     return {
       memoryUsage: {
         percent: roundToTwoDecimal(
-          (memoryUsageData.rss / this.#heapStatistics.total_available_size) *
-            100,
+          (memoryUsageData.rss / this.#heapStatistics.heap_size_limit) * 100,
         ),
         rss: this.#toMB(memoryUsageData.rss),
         heapTotal: this.#toMB(memoryUsageData.heapTotal),
