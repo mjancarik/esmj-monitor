@@ -1,3 +1,9 @@
+## 0.6.0 (2025-10-01)
+
+* feat: 🎸 add draft of severity detection ([5c94fd6](https://github.com/mjancarik/esmj-monitor/commit/5c94fd6))
+
+
+
 ## <small>0.5.4 (2025-06-05)</small>
 
 * chore: 🤖 update dependencies ([acb8ec0](https://github.com/mjancarik/esmj-monitor/commit/acb8ec0))
