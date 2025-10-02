@@ -1,15 +1,22 @@
 import { Observer } from '@esmj/observable';
 import { linearRegression, percentile } from './math.mjs';
-import { IS_MEMO } from './memo.mjs';
+import { IS_MEMO, memo } from './memo.mjs';
 
 export class MetricsHistory extends Observer {
   #options = { limit: 60 };
   #history = [];
+  #regression = null;
   custom = {};
 
   constructor(options) {
     super();
     this.#options = { ...this.#options, ...options };
+
+    this.#regression = linearRegression();
+
+    // TODO deprecated, remove in next major version
+    this.percentileMemo = memo((...rest) => this.percentile(...rest));
+    this.trendMemo = memo((...rest) => this.trend(...rest));
   }
 
   get size() {
@@ -21,6 +28,9 @@ export class MetricsHistory extends Observer {
   }
 
   #clearMemo() {
+    this.percentileMemo.clear();
+    this.trendMemo.clear();
+
     Object.keys(this.custom).forEach((key) => {
       if (typeof this.custom[key] === 'function' && this.custom[key][IS_MEMO]) {
         this.custom[key].clear();
@@ -56,6 +66,25 @@ export class MetricsHistory extends Observer {
     }
 
     this.custom[name] = func;
+  }
+
+  // TODO deprecated, remove in next major version
+  percentile(key, number) {
+    const array = this.getValues(key);
+
+    return percentile(number)(array);
+  }
+
+  // TODO deprecated, remove in next major version
+  trend(key, limit) {
+    let array = this.getValues(key);
+
+    array = array.slice(
+      !limit || limit > array.length ? 0 : array.length - limit,
+      array.length,
+    );
+
+    return this.#regression(array);
   }
 
   from(key) {
