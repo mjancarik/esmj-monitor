@@ -1,3 +1,9 @@
+## <small>0.6.1 (2025-10-02)</small>
+
+* fix: 🐛 add back deprectecated method percentile and trend ([d035947](https://github.com/mjancarik/esmj-monitor/commit/d035947))
+
+
+
 ## 0.6.0 (2025-10-01)
 
 * feat: 🎸 add draft of severity detection ([5c94fd6](https://github.com/mjancarik/esmj-monitor/commit/5c94fd6))
