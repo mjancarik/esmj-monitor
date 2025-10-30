@@ -1,5 +1,12 @@
 import { pipe } from '@esmj/observable';
-import { avg, first, last, medianNoiseReduction, takeLast } from './math.mjs';
+import {
+  avg,
+  first,
+  last,
+  linearRegression,
+  medianNoiseReduction,
+  takeLast,
+} from './math.mjs';
 import { memo } from './memo.mjs';
 
 export const SEVERITY_LEVEL = {
@@ -140,6 +147,8 @@ export class Severity {
 
     this.#evaluateInsufficientData(records);
     this.#evaluateUtilization(records);
+    this.#evaluateEventLoopDelay(records);
+    this.#evaluateEluIdleTrend(records);
     //this.#evaluateMemoryUsage(records);
 
     score = Math.min(
@@ -188,6 +197,19 @@ export class Severity {
           takeLast(15),
           avg(),
           (value) => value ?? 0,
+        ),
+      ),
+    );
+
+    this.#metricsHistory.add(
+      'getEluIdleLongTermTrend',
+      memo(
+        pipe(
+          this.#metricsHistory.from('eventLoopUtilization.idle'),
+          medianNoiseReduction(5),
+          takeLast(30),
+          linearRegression(),
+          (value) => value,
         ),
       ),
     );
@@ -319,6 +341,41 @@ export class Severity {
         records.push({ score: 5, metric: 'moderateMemoryUsage' });
         return records;
       }
+    }
+
+    return records;
+  }
+
+  #evaluateEventLoopDelay(records) {
+    const averageEventLoopDelay =
+      this.#metricsHistory.custom.getAverageEventLoopDelay();
+
+    if (averageEventLoopDelay >= 50) {
+      records.push({ score: 13, metric: 'criticalEventLoopDelay' });
+      return records;
+    }
+
+    if (averageEventLoopDelay >= 40) {
+      records.push({ score: 10, metric: 'highEventLoopDelay' });
+      return records;
+    }
+
+    return records;
+  }
+
+  #evaluateEluIdleTrend(records) {
+    const eluIdleLongTermTrend = this.#metricsHistory.custom
+      .getEluIdleLongTermTrend()
+      .predict();
+
+    if (eluIdleLongTermTrend <= 300 && eluIdleLongTermTrend !== 0) {
+      records.push({ score: 13, metric: 'criticalEluIdleTrend' });
+      return records;
+    }
+
+    if (eluIdleLongTermTrend <= 400 && eluIdleLongTermTrend !== 0) {
+      records.push({ score: 10, metric: 'highEluIdleTrend' });
+      return records;
     }
 
     return records;
