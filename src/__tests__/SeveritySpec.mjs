@@ -88,6 +88,7 @@ describe('Severity', () => {
       expect(metricsHistory.custom.getAverageMemoryPercent).toBeDefined();
       expect(metricsHistory.custom.getEventLoopDelay).toBeDefined();
       expect(metricsHistory.custom.getAverageEventLoopDelay).toBeDefined();
+      expect(metricsHistory.custom.getEluIdleLongTermTrend).toBeDefined();
     });
 
     it('should subscribe to monitor updates', () => {
@@ -194,6 +195,34 @@ describe('Severity', () => {
       expect(threats.score).toBeGreaterThanOrEqual(15);
       expect(threats.records).toContainEqual(
         expect.objectContaining({ metric: 'deadlockDetected' }),
+      );
+    });
+
+    it('should detect critical event loop delay', () => {
+      metricsHistory.custom.getAverageEventLoopDelay = jest
+        .fn()
+        .mockReturnValue(50);
+
+      const threats = severity.getThreats();
+
+      expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
+      expect(threats.score).toBeGreaterThanOrEqual(13);
+      expect(threats.records).toContainEqual(
+        expect.objectContaining({ metric: 'criticalEventLoopDelay' }),
+      );
+    });
+
+    it('should detect high ELU idle trend', () => {
+      metricsHistory.custom.getEluIdleLongTermTrend = jest.fn(() => ({
+        predict: () => 299,
+      }));
+
+      const threats = severity.getThreats();
+
+      expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
+      expect(threats.score).toBeGreaterThanOrEqual(13);
+      expect(threats.records).toContainEqual(
+        expect.objectContaining({ metric: 'criticalEluIdleTrend' }),
       );
     });
 
