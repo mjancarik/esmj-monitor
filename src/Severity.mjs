@@ -209,7 +209,7 @@ export class Severity {
           medianNoiseReduction(5),
           takeLast(30),
           linearRegression(),
-          (value) => value,
+          (value) => value ?? { slope: 0, predict: () => 0 },
         ),
       ),
     );
@@ -350,13 +350,16 @@ export class Severity {
     const averageEventLoopDelay =
       this.#metricsHistory.custom.getAverageEventLoopDelay();
 
+    // TODO NOTE kriticka hodnota prepisana z pluginu
     if (averageEventLoopDelay >= 50) {
       records.push({ score: 13, metric: 'criticalEventLoopDelay' });
       return records;
     }
 
+    // TODO NOTE nikdy nieje ako jedina stupajuca metrika, takze vacsinou aj toto staci na to aby sa to dostalo do kritickych hodnot
+    // Nerozumiem uplne tym poctom ako celok, takze neviem nejak zmysluplne dopocitat ostatne limity a k nim pridelene skore, aby to pasovalo aj k ostatnym meranym metrikam
     if (averageEventLoopDelay >= 40) {
-      records.push({ score: 10, metric: 'highEventLoopDelay' });
+      records.push({ score: 8, metric: 'highEventLoopDelay' });
       return records;
     }
 
@@ -368,13 +371,16 @@ export class Severity {
       .getEluIdleLongTermTrend()
       .predict();
 
+    // TODO NOTE kriticka hodnota prepisana z pluginu
     if (eluIdleLongTermTrend <= 300 && eluIdleLongTermTrend !== 0) {
       records.push({ score: 13, metric: 'criticalEluIdleTrend' });
       return records;
     }
 
+    // TODO NOTE nikdy nieje ako jedina stupajuca metrika, takze vacsinou aj toto staci na to aby sa to dostalo do kritickych hodnot
+    // Nerozumiem uplne tym poctom ako celok, takze neviem nejak zmysluplne dopocitat ostatne limity a k nim pridelene skore, aby to pasovalo aj k ostatnym meranym metrikam
     if (eluIdleLongTermTrend <= 400 && eluIdleLongTermTrend !== 0) {
-      records.push({ score: 10, metric: 'highEluIdleTrend' });
+      records.push({ score: 8, metric: 'highEluIdleTrend' });
       return records;
     }
 
