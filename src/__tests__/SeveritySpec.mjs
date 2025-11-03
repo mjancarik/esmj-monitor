@@ -88,7 +88,6 @@ describe('Severity', () => {
       expect(metricsHistory.custom.getAverageMemoryPercent).toBeDefined();
       expect(metricsHistory.custom.getEventLoopDelay).toBeDefined();
       expect(metricsHistory.custom.getAverageEventLoopDelay).toBeDefined();
-      expect(metricsHistory.custom.getEluIdleLongTermTrend).toBeDefined();
     });
 
     it('should subscribe to monitor updates', () => {
@@ -122,26 +121,26 @@ describe('Severity', () => {
       const threats = severity.getThreats();
 
       expect(threats.level).toBe(SEVERITY_LEVEL.LOW);
-      expect(threats.score).toBe(5);
+      expect(threats.score).toBe(25);
       expect(threats.records).toHaveLength(1);
       expect(threats.records[0].metric).toBe('insufficientMetricsHistory');
     });
 
-    it('should detect high utilization', () => {
+    it('should detect very high utilization', () => {
       metricsHistory.custom.getAverageUtilization = jest
         .fn()
-        .mockReturnValue(0.7);
+        .mockReturnValue(0.8);
       metricsHistory.custom.getCurrentUtilization = jest
         .fn()
-        .mockReturnValue(0.7);
+        .mockReturnValue(0.8);
 
       const threats = severity.getThreats();
 
-      expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
-      expect(threats.score).toBe(13);
-      expect(threats.records).toHaveLength(2);
+      expect(threats.level).toBe(SEVERITY_LEVEL.MEDIUM);
+      expect(threats.score).toBe(60);
+      expect(threats.records).toHaveLength(1);
       expect(threats.records).toContainEqual(
-        expect.objectContaining({ metric: 'highUtilization' }),
+        expect.objectContaining({ metric: 'veryHighUtilization' }),
       );
     });
 
@@ -166,7 +165,7 @@ describe('Severity', () => {
       const threats = severity.getThreats();
 
       expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
-      expect(threats.score).toBeGreaterThanOrEqual(15);
+      expect(threats.score).toBeGreaterThanOrEqual(75);
       expect(threats.records).toContainEqual(
         expect.objectContaining({ metric: 'denialOfServiceDetected' }),
       );
@@ -178,7 +177,7 @@ describe('Severity', () => {
       const threats = severity.getThreats();
 
       expect(threats.level).toBe(SEVERITY_LEVEL.CRITICAL);
-      expect(threats.score).toBe(20);
+      expect(threats.score).toBe(100);
       expect(threats.records).toContainEqual(
         expect.objectContaining({
           metric: 'distributedDenialOfServiceDetected',
@@ -192,37 +191,24 @@ describe('Severity', () => {
       const threats = severity.getThreats();
 
       expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
-      expect(threats.score).toBeGreaterThanOrEqual(15);
+      expect(threats.score).toBeGreaterThanOrEqual(75);
       expect(threats.records).toContainEqual(
         expect.objectContaining({ metric: 'deadlockDetected' }),
       );
     });
 
-    it('should detect critical event loop delay', () => {
+    it('should detect very high event loop delay', () => {
       metricsHistory.custom.getAverageEventLoopDelay = jest
         .fn()
-        .mockReturnValue(50);
+        .mockReturnValue(20);
+      metricsHistory.custom.getEventLoopDelay = jest.fn().mockReturnValue(40);
 
       const threats = severity.getThreats();
 
       expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
-      expect(threats.score).toBeGreaterThanOrEqual(13);
+      expect(threats.score).toBeGreaterThanOrEqual(65);
       expect(threats.records).toContainEqual(
-        expect.objectContaining({ metric: 'criticalEventLoopDelay' }),
-      );
-    });
-
-    it('should detect high ELU idle trend', () => {
-      metricsHistory.custom.getEluIdleLongTermTrend = jest.fn(() => ({
-        predict: () => 299,
-      }));
-
-      const threats = severity.getThreats();
-
-      expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
-      expect(threats.score).toBeGreaterThanOrEqual(13);
-      expect(threats.records).toContainEqual(
-        expect.objectContaining({ metric: 'criticalEluIdleTrend' }),
+        expect.objectContaining({ metric: 'veryHighEventLoopDelay' }),
       );
     });
 
@@ -240,7 +226,7 @@ describe('Severity', () => {
 
       const newThreats = severity.getThreats();
 
-      expect(newThreats.score).toBe(highThreats.score - 1);
+      expect(newThreats.score).toBe(highThreats.score - 5);
       expect(newThreats.records).toContainEqual(
         expect.objectContaining({ metric: 'decreasingSeverity' }),
       );
@@ -289,35 +275,35 @@ describe('Severity', () => {
         .fn()
         .mockReturnValue(0.5);
       let threats = severity.getThreats();
-      expect(threats.score).toBe(4);
+      expect(threats.score).toBe(15);
       expect(threats.level).toBe(SEVERITY_LEVEL.NORMAL);
 
       metricsHistory.custom.getAverageUtilization = jest
         .fn()
         .mockReturnValue(0.6);
       threats = severity.getThreats();
-      expect(threats.score).toBe(4);
+      expect(threats.score).toBe(15);
       expect(threats.level).toBe(SEVERITY_LEVEL.NORMAL);
 
       metricsHistory.custom.getAverageUtilization = jest
         .fn()
         .mockReturnValue(0.7);
       threats = severity.getThreats();
-      expect(threats.score).toBe(4);
+      expect(threats.score).toBe(15);
       expect(threats.level).toBe(SEVERITY_LEVEL.NORMAL);
 
       metricsHistory.custom.getAverageUtilization = jest
         .fn()
         .mockReturnValue(0.8);
       threats = severity.getThreats();
-      expect(threats.score).toBe(4);
+      expect(threats.score).toBe(15);
       expect(threats.level).toBe(SEVERITY_LEVEL.NORMAL);
 
       metricsHistory.custom.getAverageUtilization = jest
         .fn()
         .mockReturnValue(0.9);
       threats = severity.getThreats();
-      expect(threats.score).toBe(4);
+      expect(threats.score).toBe(15);
       expect(threats.level).toBe(SEVERITY_LEVEL.NORMAL);
     });
   });

@@ -143,7 +143,8 @@ const { monitor, metricsHistory, severity, start, stop } = createMonitoring({
       denialOfService: 50, // Request threshold for DoS detection
       distributedDenialOfService: 200, // Request threshold for DDoS detection
       deadlock: 20 // Active request threshold for deadlock detection
-    }
+    },
+    experimental: true // Enable experimental threats and their evaluations
   }
 });
 ```
@@ -161,10 +162,10 @@ The severity analysis component evaluates multiple metrics to determine the heal
 ```javascript
 // Example severity assessment
 {
-  score: 16, // Severity score (0-20)
+  score: 80, // Severity score (0-100)
   level: 'critical', // One of: 'normal', 'low', 'medium', 'high', 'critical'
   records: [
-    { score: 16, metric: 'denialOfServiceDetected' }
+    { score: 80, metric: 'denialOfServiceDetected' }
     // Other factors contributing to the score
   ]
 }
@@ -366,13 +367,14 @@ new Severity(monitor, metricsHistory, shortMonitor, shortMetricsHistory, request
     - `denialOfService?` (number): Request threshold for DoS detection. Default: `10`
     - `distributedDenialOfService?` (number): Request threshold for DDoS detection. Default: `20`
     - `deadlock?` (number): Active request threshold for deadlock detection. Default: `10`
+  - `experimental?` (boolean): Enable experimental threats and their evaluations. Default: `false`
 
 ##### Methods
 
 - `init()`: Initialize the severity analyzer
 - `getThreats()`: Calculate and return the current system severity assessment
   - **Returns**: (object): `{ score, level, records }`
-    - `score` (number): Severity score (0-20)
+    - `score` (number): Severity score (0-100)
     - `level` (string): One of: 'normal', 'low', 'medium', 'high', 'critical'
     - `records` (Array): Factors contributing to the severity score
 

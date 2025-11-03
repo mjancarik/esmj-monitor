@@ -1,12 +1,5 @@
 import { pipe } from '@esmj/observable';
-import {
-  avg,
-  first,
-  last,
-  linearRegression,
-  medianNoiseReduction,
-  takeLast,
-} from './math.mjs';
+import { avg, first, last, medianNoiseReduction, takeLast } from './math.mjs';
 import { memo } from './memo.mjs';
 
 export const SEVERITY_LEVEL = {
@@ -61,14 +54,14 @@ export class Severity {
             records: [...this.#currentCalculation.records],
           };
           this.#currentCalculation.score = Math.min(
-            this.#currentCalculation.score + 15,
-            20,
+            this.#currentCalculation.score + 75,
+            100,
           );
           this.#currentCalculation.level = this.#mapScoreToSeverityLevel(
             this.#currentCalculation.score,
           );
           this.#currentCalculation.records.push({
-            score: 16,
+            score: 80,
             metric: 'denialOfServiceDetected',
           });
         }
@@ -82,12 +75,12 @@ export class Severity {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
           };
-          this.#currentCalculation.score = 20;
+          this.#currentCalculation.score = 100;
           this.#currentCalculation.level = this.#mapScoreToSeverityLevel(
             this.#currentCalculation.score,
           );
           this.#currentCalculation.records.push({
-            score: 20,
+            score: 100,
             metric: 'distributedDenialOfServiceDetected',
           });
         }
@@ -99,14 +92,14 @@ export class Severity {
             records: [...this.#currentCalculation.records],
           };
           this.#currentCalculation.score = Math.min(
-            this.#currentCalculation.score + 15,
-            20,
+            this.#currentCalculation.score + 75,
+            100,
           );
           this.#currentCalculation.level = this.#mapScoreToSeverityLevel(
             this.#currentCalculation.score,
           );
           this.#currentCalculation.records.push({
-            score: 16,
+            score: 80,
             metric: 'deadlockDetected',
           });
         }
@@ -125,12 +118,12 @@ export class Severity {
       this.#currentCalculation = this.#calculateSeverity();
     }
 
-    if (this.#currentCalculation.score < 16) {
+    if (this.#currentCalculation.score < 80) {
       const { request } = this.#requestMetric.measure();
       const { request: shortRequest } = this.#shortRequestMetric.measure();
 
       for (const metric of this.#requestMetrics) {
-        if (this.#currentCalculation.score < 16) {
+        if (this.#currentCalculation.score < 80) {
           metric(request, shortRequest);
         } else {
           break;
@@ -148,21 +141,23 @@ export class Severity {
     this.#evaluateInsufficientData(records);
     this.#evaluateUtilization(records);
     this.#evaluateEventLoopDelay(records);
-    this.#evaluateEluIdleTrend(records);
-    //this.#evaluateMemoryUsage(records);
+
+    if (this.#options?.experimental) {
+      this.#evaluateMemoryUsage(records);
+    }
 
     score = Math.min(
       records.reduce((acc, { score }) => acc + score, 0),
-      20,
+      100,
     );
 
     if (
       this.#previousCalculation &&
-      score < this.#previousCalculation.score - 1
+      score < this.#previousCalculation.score - 5
     ) {
-      score = this.#previousCalculation.score - 1;
+      score = this.#previousCalculation.score - 5;
       records.push(...this.#previousCalculation.records);
-      records.push({ score: -1, metric: 'decreasingSeverity' });
+      records.push({ score: -5, metric: 'decreasingSeverity' });
 
       if (records.length > 20) {
         records.splice(0, records.length - 20);
@@ -197,19 +192,6 @@ export class Severity {
           takeLast(15),
           avg(),
           (value) => value ?? 0,
-        ),
-      ),
-    );
-
-    this.#metricsHistory.add(
-      'getEluIdleLongTermTrend',
-      memo(
-        pipe(
-          this.#metricsHistory.from('eventLoopUtilization.idle'),
-          medianNoiseReduction(5),
-          takeLast(30),
-          linearRegression(),
-          (value) => value ?? { slope: 0, predict: () => 0 },
         ),
       ),
     );
@@ -265,7 +247,7 @@ export class Severity {
 
   #evaluateInsufficientData(records) {
     if (this.#shortMetricsHistory.size < 50 || this.#metricsHistory.size < 5) {
-      records.push({ score: 5, metric: 'insufficientMetricsHistory' });
+      records.push({ score: 25, metric: 'insufficientMetricsHistory' });
     }
 
     return records;
@@ -278,35 +260,35 @@ export class Severity {
       this.#metricsHistory.custom.getCurrentUtilization();
 
     if (averageUtilization >= 0.3) {
-      if (currentUtilization * 2 > averageUtilization) {
+      if (currentUtilization > averageUtilization * 2) {
         records.push({
-          score: 4 + currentUtilization / averageUtilization,
+          score: 20 + (currentUtilization / averageUtilization) * 5,
           metric: 'utilizationSpike',
         });
       }
 
       if (averageUtilization >= 0.9) {
-        records.push({ score: 16, metric: 'criticalUtilization' });
+        records.push({ score: 80, metric: 'criticalUtilization' }); // 80
         return records;
       }
 
       if (averageUtilization >= 0.8) {
-        records.push({ score: 12, metric: 'veryHighUtilization' });
+        records.push({ score: 60, metric: 'veryHighUtilization' }); // 60
         return records;
       }
 
       if (averageUtilization >= 0.7) {
-        records.push({ score: 8, metric: 'highUtilization' });
+        records.push({ score: 35, metric: 'highUtilization' }); // 40
         return records;
       }
 
       if (averageUtilization >= 0.6) {
-        records.push({ score: 6, metric: 'elevatedUtilization' });
+        records.push({ score: 25, metric: 'elevatedUtilization' }); // 30
         return records;
       }
 
       if (averageUtilization >= 0.5) {
-        records.push({ score: 4, metric: 'moderateUtilization' });
+        records.push({ score: 15, metric: 'moderateUtilization' }); // 20
         return records;
       }
     }
@@ -323,22 +305,22 @@ export class Severity {
     // NO DETECT SMALL MEMORY LEAK
     if (currentMemoryPercent * 1.5 >= averageMemoryPercent) {
       if (currentMemoryPercent >= 90) {
-        records.push({ score: 13, metric: 'criticalMemoryUsage' });
+        records.push({ score: 65, metric: 'criticalMemoryUsage' });
         return records;
       }
 
       if (currentMemoryPercent >= 80) {
-        records.push({ score: 10, metric: 'highMemoryUsage' });
+        records.push({ score: 50, metric: 'highMemoryUsage' });
         return records;
       }
 
       if (currentMemoryPercent >= 70) {
-        records.push({ score: 8, metric: 'elevatedMemoryUsage' });
+        records.push({ score: 40, metric: 'elevatedMemoryUsage' });
         return records;
       }
 
       if (currentMemoryPercent >= 60) {
-        records.push({ score: 5, metric: 'moderateMemoryUsage' });
+        records.push({ score: 25, metric: 'moderateMemoryUsage' });
         return records;
       }
     }
@@ -350,37 +332,28 @@ export class Severity {
     const averageEventLoopDelay =
       this.#metricsHistory.custom.getAverageEventLoopDelay();
 
-    // TODO NOTE kriticka hodnota prepisana z pluginu
-    if (averageEventLoopDelay >= 50) {
-      records.push({ score: 13, metric: 'criticalEventLoopDelay' });
+    const currentEventLoopDelay =
+      this.#metricsHistory.custom.getEventLoopDelay();
+
+    const ratio = currentEventLoopDelay / averageEventLoopDelay;
+
+    if (ratio >= 2.5) {
+      records.push({ score: 80, metric: 'criticalEventLoopDelay' }); // TODO is necesery to have the 80 score (critical level) ??
       return records;
     }
 
-    // TODO NOTE nikdy nieje ako jedina stupajuca metrika, takze vacsinou aj toto staci na to aby sa to dostalo do kritickych hodnot
-    // Nerozumiem uplne tym poctom ako celok, takze neviem nejak zmysluplne dopocitat ostatne limity a k nim pridelene skore, aby to pasovalo aj k ostatnym meranym metrikam
-    if (averageEventLoopDelay >= 40) {
-      records.push({ score: 8, metric: 'highEventLoopDelay' });
+    if (ratio >= 2) {
+      records.push({ score: 65, metric: 'veryHighEventLoopDelay' });
       return records;
     }
 
-    return records;
-  }
-
-  #evaluateEluIdleTrend(records) {
-    const eluIdleLongTermTrend = this.#metricsHistory.custom
-      .getEluIdleLongTermTrend()
-      .predict();
-
-    // TODO NOTE kriticka hodnota prepisana z pluginu
-    if (eluIdleLongTermTrend <= 300 && eluIdleLongTermTrend !== 0) {
-      records.push({ score: 13, metric: 'criticalEluIdleTrend' });
+    if (ratio >= 1.8) {
+      records.push({ score: 40, metric: 'highEventLoopDelay' }); // TODO will trigger SPA with 0.6 cpu, testing
       return records;
     }
 
-    // TODO NOTE nikdy nieje ako jedina stupajuca metrika, takze vacsinou aj toto staci na to aby sa to dostalo do kritickych hodnot
-    // Nerozumiem uplne tym poctom ako celok, takze neviem nejak zmysluplne dopocitat ostatne limity a k nim pridelene skore, aby to pasovalo aj k ostatnym meranym metrikam
-    if (eluIdleLongTermTrend <= 400 && eluIdleLongTermTrend !== 0) {
-      records.push({ score: 8, metric: 'highEluIdleTrend' });
+    if (ratio >= 1.5) {
+      records.push({ score: 15, metric: 'elevatedEventLoopDelay' }); // TODO wil trigger SPA with 0.8 cpu
       return records;
     }
 
@@ -388,10 +361,10 @@ export class Severity {
   }
 
   #mapScoreToSeverityLevel(score) {
-    if (score >= 16) return SEVERITY_LEVEL.CRITICAL;
-    if (score >= 13) return SEVERITY_LEVEL.HIGH;
-    if (score >= 10) return SEVERITY_LEVEL.MEDIUM;
-    if (score >= 5) return SEVERITY_LEVEL.LOW;
+    if (score >= 80) return SEVERITY_LEVEL.CRITICAL;
+    if (score >= 65) return SEVERITY_LEVEL.HIGH;
+    if (score >= 50) return SEVERITY_LEVEL.MEDIUM;
+    if (score >= 25) return SEVERITY_LEVEL.LOW;
     return SEVERITY_LEVEL.NORMAL;
   }
 }
