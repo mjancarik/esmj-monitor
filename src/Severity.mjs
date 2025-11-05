@@ -10,6 +10,17 @@ export const SEVERITY_LEVEL = {
   CRITICAL: 'critical',
 };
 
+const DEFAULT_OPTIONS = {
+  threshold: {
+    denialOfService: 10,
+    distributedDenialOfService: 20,
+    deadlock: 10,
+  },
+  experimental: {
+    evaluateMemoryUsage: false,
+  },
+};
+
 export class Severity {
   #metricsHistory = null;
   #monitor = null;
@@ -37,7 +48,18 @@ export class Severity {
     this.#shortMetricsHistory = shortMetricsHistory;
     this.#requestMetric = requestMetric;
     this.#shortRequestMetric = shortRequestMetric;
-    this.#options = options;
+    this.#options = {
+      ...DEFAULT_OPTIONS,
+      ...options,
+      threshold: {
+        ...DEFAULT_OPTIONS.threshold,
+        ...options?.threshold,
+      },
+      experimental: {
+        ...DEFAULT_OPTIONS.experimental,
+        ...options?.experimental,
+      },
+    };
   }
 
   init() {
@@ -46,8 +68,7 @@ export class Severity {
     this.#requestMetrics = [
       (request, shortRequest) => {
         if (
-          shortRequest.count.total >
-          (this.#options?.threshold?.denialOfService ?? 10)
+          shortRequest.count.total > this.#options?.threshold?.denialOfService
         ) {
           this.#previousCalculation = {
             ...this.#currentCalculation,
@@ -69,7 +90,7 @@ export class Severity {
       (request, shortRequest) => {
         if (
           shortRequest.count.total >
-          (this.#options?.threshold?.distributedDenialOfService ?? 20)
+          this.#options?.threshold?.distributedDenialOfService
         ) {
           this.#previousCalculation = {
             ...this.#currentCalculation,
@@ -86,7 +107,7 @@ export class Severity {
         }
       },
       (request, shortRequest) => {
-        if (request.count.active > (this.#options?.threshold?.deadlock ?? 10)) {
+        if (request.count.active > this.#options?.threshold?.deadlock) {
           this.#previousCalculation = {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
@@ -142,7 +163,7 @@ export class Severity {
     this.#evaluateUtilization(records);
     this.#evaluateEventLoopDelay(records);
 
-    if (this.#options?.experimental) {
+    if (this.#options?.experimental?.evaluateMemoryUsage) {
       this.#evaluateMemoryUsage(records);
     }
 
@@ -247,7 +268,7 @@ export class Severity {
 
   #evaluateInsufficientData(records) {
     if (this.#shortMetricsHistory.size < 50 || this.#metricsHistory.size < 5) {
-      records.push({ score: 25, metric: 'insufficientMetricsHistory' });
+      records.push({ score: 30, metric: 'insufficientMetricsHistory' });
     }
 
     return records;
@@ -273,17 +294,17 @@ export class Severity {
       }
 
       if (averageUtilization >= 0.8) {
-        records.push({ score: 60, metric: 'veryHighUtilization' }); // 60
+        records.push({ score: 65, metric: 'veryHighUtilization' }); // 60
         return records;
       }
 
       if (averageUtilization >= 0.7) {
-        records.push({ score: 35, metric: 'highUtilization' }); // 40
+        records.push({ score: 50, metric: 'highUtilization' }); // 40
         return records;
       }
 
       if (averageUtilization >= 0.6) {
-        records.push({ score: 25, metric: 'elevatedUtilization' }); // 30
+        records.push({ score: 35, metric: 'elevatedUtilization' }); // 30
         return records;
       }
 
@@ -331,29 +352,17 @@ export class Severity {
   #evaluateEventLoopDelay(records) {
     const averageEventLoopDelay =
       this.#metricsHistory.custom.getAverageEventLoopDelay();
-
     const currentEventLoopDelay =
       this.#metricsHistory.custom.getEventLoopDelay();
 
-    const ratio = currentEventLoopDelay / averageEventLoopDelay;
+    const ratio =
+      currentEventLoopDelay /
+      (averageEventLoopDelay ? averageEventLoopDelay : 1);
 
-    if (ratio >= 2.5) {
-      records.push({ score: 80, metric: 'criticalEventLoopDelay' }); // TODO is necesery to have the 80 score (critical level) ??
-      return records;
-    }
+    const weight = Math.min(this.#metricsHistory.size / 15, 1);
 
     if (ratio >= 2) {
-      records.push({ score: 65, metric: 'veryHighEventLoopDelay' });
-      return records;
-    }
-
-    if (ratio >= 1.8) {
-      records.push({ score: 40, metric: 'highEventLoopDelay' }); // TODO will trigger SPA with 0.6 cpu, testing
-      return records;
-    }
-
-    if (ratio >= 1.5) {
-      records.push({ score: 15, metric: 'elevatedEventLoopDelay' }); // TODO wil trigger SPA with 0.8 cpu
+      records.push({ score: 5 + 10 * weight, metric: 'eventLoopDelaySpike' });
       return records;
     }
 
@@ -364,7 +373,7 @@ export class Severity {
     if (score >= 80) return SEVERITY_LEVEL.CRITICAL;
     if (score >= 65) return SEVERITY_LEVEL.HIGH;
     if (score >= 50) return SEVERITY_LEVEL.MEDIUM;
-    if (score >= 25) return SEVERITY_LEVEL.LOW;
+    if (score >= 30) return SEVERITY_LEVEL.LOW;
     return SEVERITY_LEVEL.NORMAL;
   }
 }

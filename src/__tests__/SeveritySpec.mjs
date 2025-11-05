@@ -121,7 +121,7 @@ describe('Severity', () => {
       const threats = severity.getThreats();
 
       expect(threats.level).toBe(SEVERITY_LEVEL.LOW);
-      expect(threats.score).toBe(25);
+      expect(threats.score).toBe(30);
       expect(threats.records).toHaveLength(1);
       expect(threats.records[0].metric).toBe('insufficientMetricsHistory');
     });
@@ -136,8 +136,8 @@ describe('Severity', () => {
 
       const threats = severity.getThreats();
 
-      expect(threats.level).toBe(SEVERITY_LEVEL.MEDIUM);
-      expect(threats.score).toBe(60);
+      expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
+      expect(threats.score).toBe(65);
       expect(threats.records).toHaveLength(1);
       expect(threats.records).toContainEqual(
         expect.objectContaining({ metric: 'veryHighUtilization' }),
@@ -197,7 +197,7 @@ describe('Severity', () => {
       );
     });
 
-    it('should detect very high event loop delay', () => {
+    it('should detect event loop delay spikes', () => {
       metricsHistory.custom.getAverageEventLoopDelay = jest
         .fn()
         .mockReturnValue(20);
@@ -205,10 +205,10 @@ describe('Severity', () => {
 
       const threats = severity.getThreats();
 
-      expect(threats.level).toBe(SEVERITY_LEVEL.HIGH);
-      expect(threats.score).toBeGreaterThanOrEqual(65);
+      expect(threats.level).toBe(SEVERITY_LEVEL.NORMAL);
+      expect(threats.score).toBeGreaterThanOrEqual(15);
       expect(threats.records).toContainEqual(
-        expect.objectContaining({ metric: 'veryHighEventLoopDelay' }),
+        expect.objectContaining({ metric: 'eventLoopDelaySpike' }),
       );
     });
 
