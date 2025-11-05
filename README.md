@@ -144,7 +144,9 @@ const { monitor, metricsHistory, severity, start, stop } = createMonitoring({
       distributedDenialOfService: 200, // Request threshold for DDoS detection
       deadlock: 20 // Active request threshold for deadlock detection
     },
-    experimental: true // Enable experimental threats and their evaluations
+    experimental: {
+      evaluateMemoryUsage: true
+    } // Enable experimental evaluations of threats
   }
 });
 ```
@@ -367,7 +369,8 @@ new Severity(monitor, metricsHistory, shortMonitor, shortMetricsHistory, request
     - `denialOfService?` (number): Request threshold for DoS detection. Default: `10`
     - `distributedDenialOfService?` (number): Request threshold for DDoS detection. Default: `20`
     - `deadlock?` (number): Active request threshold for deadlock detection. Default: `10`
-  - `experimental?` (boolean): Enable experimental threats and their evaluations. Default: `false`
+  - `experimental?` (object): Enable experimental (under development) evaluations of specific threats.
+    - `evaluateMemoryUsage?` (boolean): Enable experimental memory usage evaluation. Default: `false`
 
 ##### Methods
 
