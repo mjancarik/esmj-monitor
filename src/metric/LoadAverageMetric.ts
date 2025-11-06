@@ -1,7 +1,7 @@
 import { loadavg } from 'node:os';
 
-import { Metric } from './Metric.mjs';
-import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
+import { Metric } from './Metric.ts';
+import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 export class LoadAverageMetric extends Metric {
   measure() {

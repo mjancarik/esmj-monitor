@@ -1,7 +1,10 @@
 import { pipe } from '@esmj/observable';
-import { MetricsHistory } from './MetricsHistory.mjs';
-import { Monitor } from './Monitor.mjs';
-import { SEVERITY_LEVEL, Severity } from './Severity.mjs';
+import {
+  MetricsHistory,
+  type MetricsHistoryOptions,
+} from './MetricsHistory.ts';
+import { Monitor } from './Monitor.ts';
+import { SEVERITY_LEVEL, Severity, type SeverityOptions } from './Severity.ts';
 import {
   avg,
   first,
@@ -11,19 +14,27 @@ import {
   percentile,
   sum,
   takeLast,
-} from './math.mjs';
-import { memo } from './memo.mjs';
-import { CPUUsageMetric } from './metric/CPUUsageMetric.mjs';
-import { EventLoopDelayMetric } from './metric/EventLoopDelayMetric.mjs';
-import { EventLoopUtilizationMetric } from './metric/EventLoopUtilizationMetric.mjs';
-import { GCMetric } from './metric/GCMetric.mjs';
-import { LoadAverageMetric } from './metric/LoadAverageMetric.mjs';
-import { MemoryUsageMetric } from './metric/MemoryUsageMetric.mjs';
-import { Metric } from './metric/Metric.mjs';
-import { ProcessMetric } from './metric/ProcessMetric.mjs';
-import { RequestMetric } from './metric/RequestMetric.mjs';
+} from './math.ts';
+import { memo } from './memo.ts';
+import { CPUUsageMetric } from './metric/CPUUsageMetric.ts';
+import { EventLoopDelayMetric } from './metric/EventLoopDelayMetric.ts';
+import { EventLoopUtilizationMetric } from './metric/EventLoopUtilizationMetric.ts';
+import { GCMetric } from './metric/GCMetric.ts';
+import { LoadAverageMetric } from './metric/LoadAverageMetric.ts';
+import { MemoryUsageMetric } from './metric/MemoryUsageMetric.ts';
+import { Metric, type MonitorOptions } from './metric/Metric.ts';
+import { ProcessMetric } from './metric/ProcessMetric.ts';
+import { RequestMetric } from './metric/RequestMetric.ts';
 
-function createMonitoring(options) {
+type MonitoringOptions = {
+  monitor: MonitorOptions;
+  metricsHistory: MetricsHistoryOptions;
+  shortMonitor: MonitorOptions;
+  shortMetricsHistory: MetricsHistoryOptions;
+  severity: SeverityOptions;
+};
+
+function createMonitoring(options: MonitoringOptions) {
   const cpuUsageMetric = new CPUUsageMetric();
   const eventLoopDelayMetric = new EventLoopDelayMetric();
   const eventLoopUtilizationMetric = new EventLoopUtilizationMetric();

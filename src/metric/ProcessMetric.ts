@@ -1,5 +1,5 @@
 import { pid, platform, ppid, uptime, version } from 'node:process';
-import { Metric } from './Metric.mjs';
+import { Metric } from './Metric.ts';
 
 export class ProcessMetric extends Metric {
   measure() {

@@ -1,14 +1,20 @@
 import { pipe } from '@esmj/observable';
-import { avg, first, last, medianNoiseReduction, takeLast } from './math.mjs';
-import { memo } from './memo.mjs';
+import type { MetricsHistory } from './MetricsHistory.ts';
+import type { Monitor } from './Monitor.ts';
+import { avg, first, last, medianNoiseReduction, takeLast } from './math.ts';
+import { memo } from './memo.ts';
+import type {
+  RequestMetric,
+  RequestMetricRequestData,
+} from './metric/RequestMetric.ts';
 
-export const SEVERITY_LEVEL = {
+export const SEVERITY_LEVEL = Object.freeze({
   NORMAL: 'normal',
   LOW: 'low',
   MEDIUM: 'medium',
   HIGH: 'high',
   CRITICAL: 'critical',
-};
+});
 
 const DEFAULT_OPTIONS = {
   threshold: {
@@ -21,26 +27,53 @@ const DEFAULT_OPTIONS = {
   },
 };
 
+export type SeverityOptions = {
+  threshold?: {
+    denialOfService?: number;
+    distributedDenialOfService?: number;
+    deadlock?: number;
+  };
+  experimental?: {
+    evaluateMemoryUsage?: boolean;
+  };
+};
+
+type SeverityRecord = {
+  score: number;
+  metric: string;
+};
+
+type SeverityCalculation = {
+  score: number;
+  level: (typeof SEVERITY_LEVEL)[keyof typeof SEVERITY_LEVEL];
+  records: SeverityRecord[];
+};
+
+type RequestMetricFunction = (
+  request: RequestMetricRequestData,
+  shortRequest: RequestMetricRequestData,
+) => void;
+
 export class Severity {
-  #metricsHistory = null;
-  #monitor = null;
-  #shortMonitor = null;
-  #shortMetricsHistory = null;
-  #requestMetric = null;
-  #shortRequestMetric = null;
-  #previousCalculation = null;
-  #currentCalculation = null;
-  #requestMetrics = [];
-  #options = null;
+  #metricsHistory: MetricsHistory = null;
+  #monitor: Monitor = null;
+  #shortMonitor: Monitor = null;
+  #shortMetricsHistory: MetricsHistory = null;
+  #requestMetric: RequestMetric = null;
+  #shortRequestMetric: RequestMetric = null;
+  #previousCalculation: SeverityCalculation = null;
+  #currentCalculation: SeverityCalculation = null;
+  #requestMetrics: RequestMetricFunction[] = [];
+  #options: SeverityOptions = null;
 
   constructor(
-    monitor,
-    metricsHistory,
-    shortMonitor,
-    shortMetricsHistory,
-    requestMetric,
-    shortRequestMetric,
-    options = {},
+    monitor: Monitor,
+    metricsHistory: MetricsHistory,
+    shortMonitor: Monitor,
+    shortMetricsHistory: MetricsHistory,
+    requestMetric: RequestMetric,
+    shortRequestMetric: RequestMetric,
+    options: SeverityOptions = {},
   ) {
     this.#metricsHistory = metricsHistory;
     this.#monitor = monitor;
@@ -66,7 +99,10 @@ export class Severity {
     this.#initializeCustomMetrics();
 
     this.#requestMetrics = [
-      (request, shortRequest) => {
+      (
+        request: RequestMetricRequestData,
+        shortRequest: RequestMetricRequestData,
+      ) => {
         if (
           shortRequest.count.total > this.#options?.threshold?.denialOfService
         ) {
@@ -87,7 +123,10 @@ export class Severity {
           });
         }
       },
-      (request, shortRequest) => {
+      (
+        request: RequestMetricRequestData,
+        shortRequest: RequestMetricRequestData,
+      ) => {
         if (
           shortRequest.count.total >
           this.#options?.threshold?.distributedDenialOfService
@@ -106,7 +145,10 @@ export class Severity {
           });
         }
       },
-      (request, shortRequest) => {
+      (
+        request: RequestMetricRequestData,
+        shortRequest: RequestMetricRequestData,
+      ) => {
         if (request.count.active > this.#options?.threshold?.deadlock) {
           this.#previousCalculation = {
             ...this.#currentCalculation,
@@ -156,7 +198,7 @@ export class Severity {
   }
 
   #calculateSeverity() {
-    const records = [];
+    const records: SeverityRecord[] = [];
     let score = 0;
 
     this.#evaluateInsufficientData(records);
@@ -197,7 +239,8 @@ export class Severity {
       'getCurrentUtilization',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopUtilization.utilization'),
+          // @ts-expect-error
+          this.#metricsHistory.from<number>('eventLoopUtilization.utilization'),
           takeLast(5),
           medianNoiseReduction(),
           last(),
@@ -209,7 +252,8 @@ export class Severity {
       'getAverageUtilization',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopUtilization.utilization'),
+          // @ts-expect-error
+          this.#metricsHistory.from<number>('eventLoopUtilization.utilization'),
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -221,7 +265,8 @@ export class Severity {
       'getCurrentMemoryPercent',
       memo(
         pipe(
-          this.#metricsHistory.from('memoryUsage.percent'),
+          // @ts-expect-error
+          this.#metricsHistory.from<number>('memoryUsage.percent'),
           takeLast(1),
           last(),
           (value) => value ?? 0,
@@ -233,7 +278,8 @@ export class Severity {
       'getAverageMemoryPercent',
       memo(
         pipe(
-          this.#metricsHistory.from('memoryUsage.percent'),
+          // @ts-expect-error
+          this.#metricsHistory.from<number>('memoryUsage.percent'),
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -245,7 +291,8 @@ export class Severity {
       'getEventLoopDelay',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopDelay.percentile80'),
+          // @ts-expect-error
+          this.#metricsHistory.from<number>('eventLoopDelay.percentile80'),
           takeLast(1),
           first(),
           (value) => value ?? 0,
@@ -257,7 +304,8 @@ export class Severity {
       'getAverageEventLoopDelay',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopDelay.percentile80'),
+          // @ts-expect-error
+          this.#metricsHistory.from<number>('eventLoopDelay.percentile80'),
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -266,7 +314,7 @@ export class Severity {
     );
   }
 
-  #evaluateInsufficientData(records) {
+  #evaluateInsufficientData(records: SeverityRecord[]) {
     if (this.#shortMetricsHistory.size < 50 || this.#metricsHistory.size < 5) {
       records.push({ score: 30, metric: 'insufficientMetricsHistory' });
     }
@@ -274,7 +322,7 @@ export class Severity {
     return records;
   }
 
-  #evaluateUtilization(records) {
+  #evaluateUtilization(records: SeverityRecord[]) {
     const averageUtilization =
       this.#metricsHistory.custom.getAverageUtilization();
     const currentUtilization =
@@ -317,7 +365,7 @@ export class Severity {
     return records;
   }
 
-  #evaluateMemoryUsage(records) {
+  #evaluateMemoryUsage(records: SeverityRecord[]) {
     const currentMemoryPercent =
       this.#metricsHistory.custom.getCurrentMemoryPercent();
     const averageMemoryPercent =
@@ -349,7 +397,7 @@ export class Severity {
     return records;
   }
 
-  #evaluateEventLoopDelay(records) {
+  #evaluateEventLoopDelay(records: SeverityRecord[]) {
     const averageEventLoopDelay =
       this.#metricsHistory.custom.getAverageEventLoopDelay();
     const currentEventLoopDelay =
@@ -369,7 +417,9 @@ export class Severity {
     return records;
   }
 
-  #mapScoreToSeverityLevel(score) {
+  #mapScoreToSeverityLevel(
+    score: number,
+  ): (typeof SEVERITY_LEVEL)[keyof typeof SEVERITY_LEVEL] {
     if (score >= 80) return SEVERITY_LEVEL.CRITICAL;
     if (score >= 65) return SEVERITY_LEVEL.HIGH;
     if (score >= 50) return SEVERITY_LEVEL.MEDIUM;

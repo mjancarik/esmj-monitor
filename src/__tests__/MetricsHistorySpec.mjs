@@ -1,14 +1,14 @@
 import { jest } from '@jest/globals';
 
 import { pipe } from '@esmj/observable';
-import { MetricsHistory } from '../MetricsHistory.mjs';
+import { MetricsHistory } from '../MetricsHistory.ts';
 import {
   linearRegression,
   medianNoiseReduction,
   percentile,
   takeLast,
-} from '../math.mjs';
-import { memo } from '../memo.mjs';
+} from '../math.ts';
+import { memo } from '../memo.ts';
 
 describe('MetricsHistory', () => {
   let metricsHistory;

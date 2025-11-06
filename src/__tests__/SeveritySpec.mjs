@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals';
 import { toMockedInstance } from 'to-mock';
-import { MetricsHistory } from '../MetricsHistory.mjs';
-import { Monitor } from '../Monitor.mjs';
-import { SEVERITY_LEVEL, Severity } from '../Severity.mjs';
-import { RequestMetric } from '../index.mjs';
+import { MetricsHistory } from '../MetricsHistory.ts';
+import { Monitor } from '../Monitor.ts';
+import { SEVERITY_LEVEL, Severity } from '../Severity.ts';
+import { RequestMetric } from '../index.ts';
 
 describe('Severity', () => {
   let severity;

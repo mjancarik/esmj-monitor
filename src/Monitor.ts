@@ -1,16 +1,17 @@
 import { Observable } from '@esmj/observable';
+import type { Metric, MonitorOptions } from './metric/Metric.ts';
 
 export class Monitor extends Observable {
   #options = { interval: 1000 };
-  #intervalId = null;
-  #metrics = [];
+  #intervalId: NodeJS.Timeout | null = null;
+  #metrics: Metric[] = [];
 
-  constructor(options) {
+  constructor(options?: MonitorOptions) {
     super();
     this.#options = { ...this.#options, ...options };
   }
 
-  add(metric) {
+  add(metric: Metric) {
     this.#metrics.push(metric);
 
     return () => {
@@ -18,7 +19,7 @@ export class Monitor extends Observable {
     };
   }
 
-  remove(metric) {
+  remove(metric: Metric) {
     const index = this.#metrics.indexOf(metric);
 
     this.#metrics.splice(index, 1);
@@ -40,7 +41,7 @@ export class Monitor extends Observable {
     this.complete();
   }
 
-  #runMetricMethod(method, args) {
+  #runMetricMethod(method: keyof Metric, args: MonitorOptions) {
     return this.#metrics.reduce((result, metric) => {
       Object.assign(result, metric[method](args));
 
@@ -57,7 +58,7 @@ export class Monitor extends Observable {
     }, this.#options.interval).unref();
   }
 
-  #notify(...rest) {
+  #notify(...rest: Record<string, any>[]) {
     try {
       this.next(...rest);
     } catch (error) {

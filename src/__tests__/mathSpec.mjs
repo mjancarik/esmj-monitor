@@ -8,7 +8,7 @@ import {
   percentile,
   sum,
   takeLast,
-} from '../math.mjs';
+} from '../math.ts';
 
 describe('math', () => {
   const array = [1, 10, 20, 5, 45, 30];

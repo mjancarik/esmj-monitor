@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-import { memo } from '../memo.mjs';
+import { memo } from '../memo.ts';
 
 describe('memo', () => {
   let calculateMemo;

@@ -1,6 +1,6 @@
 import diagnostics_channel from 'node:diagnostics_channel';
-import { Metric } from './Metric.mjs';
-import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
+import { Metric } from './Metric.ts';
+import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 const HTTP_EVENT_START = 'http.server.request.start';
 const HTTP2_EVENT_START = 'http2.server.request.start';
@@ -10,6 +10,40 @@ const HTTP2_EVENT_FINISHED = 'http2.server.response.finish';
 
 const NET_EVENT_START = 'net.server.socket';
 const requestStart = Symbol('requestStart');
+
+type Request = {
+  [key: symbol]: any;
+  on(event: string, callBack: () => void): void;
+};
+
+type Response = {
+  statusCode?: number;
+  on(event: string, callBack: () => void): void;
+};
+
+export type RequestMetricRequestData = {
+  count: {
+    total: number;
+    active: number;
+    zombie: number;
+    clientErrors: number;
+    serverErrors: number;
+    connections: number;
+  };
+  duration: {
+    10: number;
+    25: number;
+    50: number;
+    100: number;
+    200: number;
+    500: number;
+    1000: number;
+    2000: number;
+    5000: number;
+    Infinity: number;
+  };
+  errorRate: number;
+};
 
 export class RequestMetric extends Metric {
   #requestKey = Symbol('request key');
@@ -23,7 +57,7 @@ export class RequestMetric extends Metric {
     active: 0,
     zombie: 0,
     clientErrors: 0,
-    serverErrors: 0,
+    httpServerErrors: 0,
     connections: 0,
   };
 
@@ -113,8 +147,8 @@ export class RequestMetric extends Metric {
 
   stop() {
     try {
-      diagnostics_channel.unsubscribe(HTTP_EVENT_CREATED, this.#createRequest);
-      diagnostics_channel.unsubscribe(HTTP2_EVENT_CREATED, this.#createRequest);
+      diagnostics_channel.unsubscribe(HTTP_EVENT_START, this.#createRequest);
+      diagnostics_channel.unsubscribe(HTTP2_EVENT_START, this.#createRequest);
 
       diagnostics_channel.unsubscribe(HTTP_EVENT_FINISHED, this.#finishRequest);
       diagnostics_channel.unsubscribe(
@@ -122,20 +156,20 @@ export class RequestMetric extends Metric {
         this.#finishRequest,
       );
 
-      diagnostics_channel.unsubscribe(
-        NET_EVENT_CREATED,
-        this.#createConnection,
-      );
+      diagnostics_channel.unsubscribe(NET_EVENT_START, this.#createConnection);
     } catch (error) {
       //console.warn('Diagnostics channel is not available:', error);
     }
   }
 
-  _createConnection(message) {
+  _createConnection(message: any) {
     this.#count.connections++;
   }
 
-  _createRequest({ request, response }) {
+  _createRequest({
+    request,
+    response,
+  }: { request: Request; response: Response }) {
     request[requestStart] = performance.now();
     request[this.#requestKey] = false; // Add a flag
 
@@ -167,7 +201,10 @@ export class RequestMetric extends Metric {
     this.#count.active++;
   }
 
-  _finishRequest({ request, response }) {
+  _finishRequest({
+    request,
+    response,
+  }: { request: Request; response: Response }) {
     const duration = performance.now() - request[requestStart];
     const durationKey =
       duration <= 10

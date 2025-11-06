@@ -1,6 +1,11 @@
 {
   "files": {
-    "include": ["src/**/*.mjs", "utils/**/*.mjs"],
+    "include": [
+      "src/**/*.mjs",
+      "utils/**/*.mjs",
+      "src/**/*.ts",
+      "utils/**/*.ts"
+    ],
     "ignore": [".history/**/*"]
   },
   "formatter": {
@@ -19,6 +24,9 @@
       "recommended": true,
       "complexity": {
         "noForEach": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn"
       }
     }
   },

@@ -1,10 +1,10 @@
 import { memoryUsage } from 'node:process';
-import { getHeapStatistics } from 'node:v8';
-import { Metric } from './Metric.mjs';
-import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
+import { type HeapInfo, getHeapStatistics } from 'node:v8';
+import { Metric } from './Metric.ts';
+import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 export class MemoryUsageMetric extends Metric {
-  #heapStatistics = null;
+  #heapStatistics: HeapInfo = null;
 
   start() {
     this.#heapStatistics = getHeapStatistics();
@@ -31,7 +31,7 @@ export class MemoryUsageMetric extends Metric {
     this.#heapStatistics = null;
   }
 
-  #toMB(value) {
+  #toMB(value: number) {
     return roundToTwoDecimal(value / 1024 / 1024);
   }
 }

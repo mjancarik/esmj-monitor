@@ -2,8 +2,8 @@ import { jest } from '@jest/globals';
 
 import { toMockedInstance } from 'to-mock';
 
-import { Monitor } from '../Monitor.mjs';
-import { Metric } from '../metric/Metric.mjs';
+import { Monitor } from '../Monitor.ts';
+import { Metric } from '../metric/Metric.ts';
 
 jest.spyOn(global, 'setInterval').mockImplementation((method) => {
   method();
