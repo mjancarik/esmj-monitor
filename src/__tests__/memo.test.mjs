@@ -1,4 +1,5 @@
-import { jest } from '@jest/globals';
+import assert from 'node:assert/strict';
+import { beforeEach, describe, it, mock } from 'node:test';
 
 import { memo } from '../memo.ts';
 
@@ -7,13 +8,13 @@ describe('memo', () => {
   let calculate;
 
   beforeEach(() => {
-    calculate = jest.fn((a, b) => a + b);
+    calculate = mock.fn((a, b) => a + b);
     calculateMemo = memo(calculate);
   });
 
   it('should calculate only once for same inputs', () => {
     calculateMemo(1, 2);
-    expect(calculateMemo(1, 2)).toEqual(3);
-    expect(calculate.mock.calls.length).toEqual(1);
+    assert.strictEqual(calculateMemo(1, 2), 3);
+    assert.strictEqual(calculate.mock.calls.length, 1);
   });
 });

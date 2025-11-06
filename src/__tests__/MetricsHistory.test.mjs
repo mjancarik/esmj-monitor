@@ -1,4 +1,5 @@
-import { jest } from '@jest/globals';
+import assert from 'node:assert/strict';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 
 import { pipe } from '@esmj/observable';
 import { MetricsHistory } from '../MetricsHistory.ts';
@@ -94,27 +95,18 @@ describe('MetricsHistory', () => {
       percentile(0),
     )();
 
-    expect(percentile100).toMatchInlineSnapshot('45');
-    expect(percentile80).toMatchInlineSnapshot('39.00000000000001');
-    expect(percentile75).toMatchInlineSnapshot('33.75');
-    expect(median).toMatchInlineSnapshot('15');
-    expect(percentile25).toMatchInlineSnapshot('4');
-    expect(percentile20).toMatchInlineSnapshot('2.6000000000000005');
-    expect(percentile0).toMatchInlineSnapshot('1');
-    expect(metricsHistory.size).toEqual(6);
-    expect(metricsHistory.current).toMatchInlineSnapshot(`
-      {
-        "cpuUsage": {
-          "percent": 30,
-          "system": 900,
-          "user": 1200,
-        },
-        "memoryUsage": {
-          "heapTotal": 80,
-          "rss": 150,
-        },
-      }
-    `);
+    assert.strictEqual(percentile100, 45);
+    assert.strictEqual(percentile80, 39.00000000000001);
+    assert.strictEqual(percentile75, 33.75);
+    assert.strictEqual(median, 15);
+    assert.strictEqual(percentile25, 4);
+    assert.strictEqual(percentile20, 2.6000000000000005);
+    assert.strictEqual(percentile0, 1);
+    assert.strictEqual(metricsHistory.size, 6);
+    assert.deepEqual(metricsHistory.current, {
+      cpuUsage: { user: 1200, system: 900, percent: 30 },
+      memoryUsage: { rss: 150, heapTotal: 80 },
+    });
   });
 
   describe('trend method', () => {
@@ -126,9 +118,9 @@ describe('MetricsHistory', () => {
         linearRegression(),
       )();
 
-      expect(trend.slope).toMatchInlineSnapshot('0');
-      expect(trend.yIntercept).toMatchInlineSnapshot('0');
-      expect(trend.predict()).toMatchInlineSnapshot('0');
+      assert.strictEqual(trend.slope, 0);
+      assert.strictEqual(trend.yIntercept, 0);
+      assert.strictEqual(trend.predict(), 0);
     });
 
     it('should return linear regression trend for one metrics history', () => {
@@ -146,9 +138,9 @@ describe('MetricsHistory', () => {
         linearRegression(),
       )();
 
-      expect(trend.slope).toMatchInlineSnapshot('0');
-      expect(trend.yIntercept).toMatchInlineSnapshot('0');
-      expect(trend.predict()).toMatchInlineSnapshot('0');
+      assert.strictEqual(trend.slope, 0);
+      assert.strictEqual(trend.yIntercept, 0);
+      assert.strictEqual(trend.predict(), 0);
     });
 
     it('should return linear regression trend for two metrics history', () => {
@@ -174,9 +166,9 @@ describe('MetricsHistory', () => {
         linearRegression(),
       )();
 
-      expect(trend.slope).toMatchInlineSnapshot('10');
-      expect(trend.yIntercept).toMatchInlineSnapshot('0');
-      expect(trend.predict()).toMatchInlineSnapshot('30');
+      assert.strictEqual(trend.slope, 10);
+      assert.strictEqual(trend.yIntercept, 0);
+      assert.strictEqual(trend.predict(), 30);
     });
 
     it('should return linear regression trend for defined metric', () => {
@@ -186,9 +178,9 @@ describe('MetricsHistory', () => {
         linearRegression(),
       )();
 
-      expect(trend.slope).toMatchInlineSnapshot('6.5');
-      expect(trend.yIntercept).toMatchInlineSnapshot('2.5');
-      expect(trend.predict()).toMatchInlineSnapshot('41.5');
+      assert.strictEqual(trend.slope, 6.5);
+      assert.strictEqual(trend.yIntercept, 2.5);
+      assert.strictEqual(trend.predict(), 41.5);
     });
 
     it('memo function should calculate trend only once for same inputs', () => {
@@ -197,19 +189,20 @@ describe('MetricsHistory', () => {
         takeLast(5),
         linearRegression(),
       );
-      const trendMock = jest.fn().mockImplementation(trendFn);
+      const trendMock = mock.fn(trendFn);
       const trendMemo = memo(trendMock);
+
       trendMemo();
       trendMemo();
       trendMemo();
 
       const trend = trendMemo();
 
-      expect(trend.slope).toMatchInlineSnapshot('6.5');
-      expect(trend.yIntercept).toMatchInlineSnapshot('2.5');
-      expect(trend.predict()).toMatchInlineSnapshot('41.5');
+      assert.strictEqual(trend.slope, 6.5);
+      assert.strictEqual(trend.yIntercept, 2.5);
+      assert.strictEqual(trend.predict(), 41.5);
 
-      expect(trendMock.mock.calls.length).toEqual(1);
+      assert.strictEqual(trendMock.mock.callCount(), 1);
     });
 
     it('memo function should recalculate trend for new metrics', () => {
@@ -220,7 +213,7 @@ describe('MetricsHistory', () => {
         takeLast(5),
         linearRegression(),
       );
-      const trendMock = jest.fn().mockImplementation(trendFn);
+      const trendMock = mock.fn(trendFn);
       const trendMemo = memo(trendMock);
 
       metricsHistory.add('trendCPUUsage', trendMemo);
@@ -249,19 +242,19 @@ describe('MetricsHistory', () => {
 
       const trend = metricsHistory.custom.trendCPUUsage();
 
-      expect(trend.slope).toMatchInlineSnapshot('10');
-      expect(trend.yIntercept).toMatchInlineSnapshot('0');
-      expect(trend.predict()).toMatchInlineSnapshot('30');
+      assert.strictEqual(trend.slope, 10);
+      assert.strictEqual(trend.yIntercept, 0);
+      assert.strictEqual(trend.predict(), 30);
 
-      expect(trendMock.mock.calls.length).toEqual(3);
+      assert.strictEqual(trendMock.mock.callCount(), 3);
     });
   });
 
   describe('custom statistics', () => {
-    let passArgs = null;
+    let passArgs;
 
     beforeEach(() => {
-      passArgs = jest.fn((arg) => arg);
+      passArgs = mock.fn((arg) => arg);
       metricsHistory.add(
         'trendCPUUsage',
         memo(
@@ -277,23 +270,24 @@ describe('MetricsHistory', () => {
     });
 
     afterEach(() => {
-      passArgs.mockReset();
+      passArgs = mock.fn((arg) => arg);
     });
 
     it('should return right value from custom statistic', () => {
-      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
+      assert.strictEqual(metricsHistory.custom.trendCPUUsage().predict(), 35);
     });
 
     it('should calculate value only once', () => {
-      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
-      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
-      expect(passArgs).toHaveBeenCalledTimes(1);
+      assert.strictEqual(metricsHistory.custom.trendCPUUsage().predict(), 35);
+      assert.strictEqual(metricsHistory.custom.trendCPUUsage().predict(), 35);
+      assert.strictEqual(passArgs.mock.callCount(), 1);
     });
 
     it('should calculate value only once for same inputs', () => {
-      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
-      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(35);
-      expect(passArgs).toHaveBeenCalledTimes(1);
+      assert.strictEqual(metricsHistory.custom.trendCPUUsage().predict(), 35);
+      assert.strictEqual(metricsHistory.custom.trendCPUUsage().predict(), 35);
+      assert.strictEqual(passArgs.mock.callCount(), 1);
+
       metricsHistory.next({
         cpuUsage: { user: 900, system: 400, percent: 10 },
         memoryUsage: {
@@ -301,9 +295,10 @@ describe('MetricsHistory', () => {
           heapTotal: 80,
         },
       });
-      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(27.5);
-      expect(metricsHistory.custom.trendCPUUsage().predict()).toEqual(27.5);
-      expect(passArgs).toHaveBeenCalledTimes(2);
+
+      assert.strictEqual(metricsHistory.custom.trendCPUUsage().predict(), 27.5);
+      assert.strictEqual(metricsHistory.custom.trendCPUUsage().predict(), 27.5);
+      assert.strictEqual(passArgs.mock.callCount(), 2);
     });
   });
 });
