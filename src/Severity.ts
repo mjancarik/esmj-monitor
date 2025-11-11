@@ -238,12 +238,12 @@ export class Severity {
     this.#metricsHistory.add(
       'getCurrentUtilization',
       memo(
-        pipe(
-          // @ts-expect-error
-          this.#metricsHistory.from<number>('eventLoopUtilization.utilization'),
+        pipe<number[], number>(
+          this.#metricsHistory.from('eventLoopUtilization.utilization'),
           takeLast(5),
           medianNoiseReduction(),
           last(),
+          avg(),
           (value) => value ?? 0,
         ),
       ),
@@ -251,9 +251,8 @@ export class Severity {
     this.#metricsHistory.add(
       'getAverageUtilization',
       memo(
-        pipe(
-          // @ts-expect-error
-          this.#metricsHistory.from<number>('eventLoopUtilization.utilization'),
+        pipe<number[], number>(
+          this.#metricsHistory.from('eventLoopUtilization.utilization'),
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -264,9 +263,8 @@ export class Severity {
     this.#metricsHistory.add(
       'getCurrentMemoryPercent',
       memo(
-        pipe(
-          // @ts-expect-error
-          this.#metricsHistory.from<number>('memoryUsage.percent'),
+        pipe<number[], number>(
+          this.#metricsHistory.from('memoryUsage.percent'),
           takeLast(1),
           last(),
           (value) => value ?? 0,
@@ -277,9 +275,8 @@ export class Severity {
     this.#metricsHistory.add(
       'getAverageMemoryPercent',
       memo(
-        pipe(
-          // @ts-expect-error
-          this.#metricsHistory.from<number>('memoryUsage.percent'),
+        pipe<number[], number>(
+          this.#metricsHistory.from('memoryUsage.percent'),
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -290,9 +287,8 @@ export class Severity {
     this.#metricsHistory.add(
       'getEventLoopDelay',
       memo(
-        pipe(
-          // @ts-expect-error
-          this.#metricsHistory.from<number>('eventLoopDelay.percentile80'),
+        pipe<number[], number>(
+          this.#metricsHistory.from('eventLoopDelay.percentile80'),
           takeLast(1),
           first(),
           (value) => value ?? 0,
@@ -303,9 +299,8 @@ export class Severity {
     this.#metricsHistory.add(
       'getAverageEventLoopDelay',
       memo(
-        pipe(
-          // @ts-expect-error
-          this.#metricsHistory.from<number>('eventLoopDelay.percentile80'),
+        pipe<number[], number>(
+          this.#metricsHistory.from('eventLoopDelay.percentile80'),
           takeLast(15),
           avg(),
           (value) => value ?? 0,

@@ -12,9 +12,9 @@ export type MetricsHistoryOptions = {
   limit?: number;
 };
 
-type MetricsFunction<T = any> = (...args: any[]) => T;
+export type MetricsFunction<T = unknown> = (...args: unknown[]) => T;
 
-type MetricsHistoryEntry = {
+export interface MetricsHistoryEntry {
   cpuUsage?: {
     user: number;
     system: number;
@@ -50,13 +50,23 @@ type MetricsHistoryEntry = {
     version: string;
   };
   request?: RequestMetricRequestData;
-};
+}
+
+export interface CustomMetrics {
+  getCurrentUtilization?: MemoizedFunction<MetricsFunction<number>>;
+  getAverageUtilization?: MemoizedFunction<MetricsFunction<number>>;
+  getCurrentMemoryPercent?: MemoizedFunction<MetricsFunction<number>>;
+  getAverageMemoryPercent?: MemoizedFunction<MetricsFunction<number>>;
+  getEventLoopDelay?: MemoizedFunction<MetricsFunction<number>>;
+  getAverageEventLoopDelay?: MemoizedFunction<MetricsFunction<number>>;
+  [key: string]: MemoizedFunction<MetricsFunction>;
+}
 
 export class MetricsHistory extends Observer {
   #options: MetricsHistoryOptions = { limit: 60 };
   #history: MetricsHistoryEntry[] = [];
   #regression: (array: LinearRegressionInput[]) => Regression = null;
-  custom: Record<string, MemoizedFunction<MetricsFunction>> = {};
+  custom: CustomMetrics = {};
 
   // TODO deprecated, remove in next major version
   percentileMemo: MemoizedFunction<
@@ -102,7 +112,6 @@ export class MetricsHistory extends Observer {
     this.#clearMemo();
   }
 
-  // @ts-expect-error  Need to be fixed in the observable plugin
   next(metric: MetricsHistoryEntry) {
     this.#history.push(metric);
 
@@ -113,7 +122,6 @@ export class MetricsHistory extends Observer {
     this.#clearMemo();
   }
 
-  // @ts-expect-error  Need to be fixed in the observable plugin
   error(error: unknown) {
     console.error(error);
   }
@@ -147,11 +155,11 @@ export class MetricsHistory extends Observer {
     return this.#regression(array);
   }
 
-  from<T = number>(key: string): (operation?: IObservable) => T[] {
-    return () => this.getValues<T>(key);
+  from(key: string) {
+    return () => this.getValues(key);
   }
 
-  getValues<T = number>(key: string): T[] {
+  getValues(key: string) {
     const keys = key?.split('.') ?? [];
 
     return this.#history.map((metric) => {

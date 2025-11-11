@@ -1,6 +1,8 @@
 import { pipe } from '@esmj/observable';
 import {
+  type CustomMetrics,
   MetricsHistory,
+  type MetricsHistoryEntry,
   type MetricsHistoryOptions,
 } from './MetricsHistory.ts';
 import { Monitor } from './Monitor.ts';
@@ -114,6 +116,8 @@ export {
   createMonitoring,
   Monitor,
   MetricsHistory,
+  type MetricsHistoryEntry,
+  type CustomMetrics,
   Severity,
   SEVERITY_LEVEL,
   Metric,

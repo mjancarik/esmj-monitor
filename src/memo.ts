@@ -1,15 +1,16 @@
 export const IS_MEMO = Symbol('MemoSymbol');
 
-export type MemoizedFunction<T extends (...args: any[]) => any> = T & {
+export type MemoizedFunction<T extends (...args: unknown[]) => unknown> = T & {
   clear: () => void;
   [IS_MEMO]: true;
+  _getType: () => ReturnType<T>;
 };
 
-export function memo<T extends (...args: any[]) => any>(
+export function memo<T extends (...args: unknown[]) => unknown>(
   func: T,
 ): MemoizedFunction<T> {
   return ((func) => {
-    let cache: Record<string, ReturnType<T>> = {};
+    let cache: Record<string, unknown> = {};
 
     const keyGenerator = (...rest: Parameters<T>) => rest.join('-');
     const clear = () => {
