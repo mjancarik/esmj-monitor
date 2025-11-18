@@ -238,12 +238,11 @@ export class Severity {
     this.#metricsHistory.add(
       'getCurrentUtilization',
       memo(
-        pipe<number[], number>(
+        pipe(
           this.#metricsHistory.from('eventLoopUtilization.utilization'),
           takeLast(5),
           medianNoiseReduction(),
           last(),
-          avg(),
           (value) => value ?? 0,
         ),
       ),
@@ -251,7 +250,7 @@ export class Severity {
     this.#metricsHistory.add(
       'getAverageUtilization',
       memo(
-        pipe<number[], number>(
+        pipe(
           this.#metricsHistory.from('eventLoopUtilization.utilization'),
           takeLast(15),
           avg(),
@@ -263,7 +262,7 @@ export class Severity {
     this.#metricsHistory.add(
       'getCurrentMemoryPercent',
       memo(
-        pipe<number[], number>(
+        pipe(
           this.#metricsHistory.from('memoryUsage.percent'),
           takeLast(1),
           last(),
@@ -275,7 +274,7 @@ export class Severity {
     this.#metricsHistory.add(
       'getAverageMemoryPercent',
       memo(
-        pipe<number[], number>(
+        pipe(
           this.#metricsHistory.from('memoryUsage.percent'),
           takeLast(15),
           avg(),
@@ -287,7 +286,7 @@ export class Severity {
     this.#metricsHistory.add(
       'getEventLoopDelay',
       memo(
-        pipe<number[], number>(
+        pipe(
           this.#metricsHistory.from('eventLoopDelay.percentile80'),
           takeLast(1),
           first(),
@@ -299,7 +298,7 @@ export class Severity {
     this.#metricsHistory.add(
       'getAverageEventLoopDelay',
       memo(
-        pipe<number[], number>(
+        pipe(
           this.#metricsHistory.from('eventLoopDelay.percentile80'),
           takeLast(15),
           avg(),
