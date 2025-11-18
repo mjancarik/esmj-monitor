@@ -12,7 +12,8 @@ const NET_EVENT_START = 'net.server.socket';
 const requestStart = Symbol('requestStart');
 
 type Request = {
-  [key: symbol]: any;
+  [requestStart]?: number;
+  [key: symbol]: unknown;
   on(event: string, callBack: () => void): void;
 };
 
@@ -162,7 +163,7 @@ export class RequestMetric extends Metric {
     }
   }
 
-  _createConnection(message: any) {
+  _createConnection(_message: string) {
     this.#count.connections++;
   }
 
