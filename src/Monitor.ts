@@ -58,7 +58,7 @@ export class Monitor extends Observable {
     }, this.#options.interval).unref();
   }
 
-  #notify(...rest: Record<string, any>[]) {
+  #notify(...rest: Record<string, unknown>[]) {
     try {
       this.next(...rest);
     } catch (error) {
