@@ -12,8 +12,8 @@ The `@esmj/monitor` is module for collecting node metrics from native node API.
 - HTTP Request monitoring
 - Load Average monitoring
 - Process information
-- Severity Analysis for system health (BETA)
-- DoS and DDoS attack detection (BETA)
+- Severity Analysis for system health
+- DoS and DDoS attack detection
 
 ## Requirements
 
@@ -151,7 +151,7 @@ const { monitor, metricsHistory, severity, start, stop } = createMonitoring({
 });
 ```
 
-## Severity Analysis (BETA)
+## Severity Analysis
 
 The severity analysis component evaluates multiple metrics to determine the health of your system:
 
