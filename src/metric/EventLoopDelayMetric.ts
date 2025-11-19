@@ -1,10 +1,10 @@
-import { monitorEventLoopDelay } from 'node:perf_hooks';
+import { type IntervalHistogram, monitorEventLoopDelay } from 'node:perf_hooks';
 
-import { Metric } from './Metric.mjs';
-import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
+import { Metric, type MonitorOptions } from './Metric.ts';
+import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 export class EventLoopDelayMetric extends Metric {
-  #histogram = null;
+  #histogram: IntervalHistogram = null;
 
   start() {
     this.#histogram = monitorEventLoopDelay({ resolution: 20 });
@@ -15,7 +15,7 @@ export class EventLoopDelayMetric extends Metric {
     this.#histogram.disable();
   }
 
-  measure({ interval }) {
+  measure({ interval }: MonitorOptions) {
     return {
       eventLoopDelay: {
         min: roundToTwoDecimal(this.#histogram.min / (interval * 1000)),

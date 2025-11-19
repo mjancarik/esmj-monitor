@@ -1,13 +1,13 @@
-import { performance } from 'node:perf_hooks';
+import { type EventLoopUtilization, performance } from 'node:perf_hooks';
 
-import { Metric } from './Metric.mjs';
-import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
+import { Metric } from './Metric.ts';
+import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 const { eventLoopUtilization } = performance;
 
 export class EventLoopUtilizationMetric extends Metric {
-  #eventLoopUtilizationDataStart = null;
-  #eventLoopUtilizationDataEnd = null;
+  #eventLoopUtilizationDataStart: EventLoopUtilization = null;
+  #eventLoopUtilizationDataEnd: EventLoopUtilization = null;
 
   start() {
     this.#eventLoopUtilizationDataStart = eventLoopUtilization();

@@ -1,6 +1,13 @@
+export type LinearRegressionInput = number | { x: number; y: number };
+export type Regression = {
+  slope: number;
+  yIntercept: number;
+  predict: (x?: number) => number;
+};
+
 export function medianNoiseReduction(grouping = 5) {
-  return function _medianNoiseReduction(array) {
-    const newArray = [];
+  return function _medianNoiseReduction(array: number[]) {
+    const newArray: number[] = [];
 
     for (let index = 0; index < array.length; index++) {
       const startIndex =
@@ -21,11 +28,19 @@ export function medianNoiseReduction(grouping = 5) {
 }
 
 export function linearRegression() {
-  return function _linearRegression(array) {
+  return function _linearRegression(
+    array: LinearRegressionInput[],
+  ): Regression {
     const { sumY, sumX, sumX2, sumXY } = array.reduce(
       (result, value, index) => {
-        const x = value?.x ?? index + 1;
-        const y = value?.y ?? value;
+        const x =
+          typeof value === 'object' && value !== null
+            ? (value.x ?? index + 1)
+            : index + 1;
+        const y =
+          typeof value === 'object' && value !== null
+            ? (value.y ?? 0)
+            : (value as number);
         result.sumX += x;
         result.sumY += y;
         result.sumX2 += x * x;
@@ -59,7 +74,7 @@ export function linearRegression() {
 }
 
 export function percentile(number = 50) {
-  return function _percentile(array) {
+  return function _percentile(array: number[]) {
     if (!array.length) {
       return undefined;
     }
@@ -89,8 +104,8 @@ export function percentile(number = 50) {
   };
 }
 
-export function takeLast(size) {
-  return function _takeLast(array) {
+export function takeLast(size: number): (array: number[]) => number[] {
+  return function _takeLast(array: number[]) {
     return array.slice(
       !size || size > array.length ? 0 : array.length - size,
       array.length,
@@ -98,20 +113,20 @@ export function takeLast(size) {
   };
 }
 
-export function first() {
-  return function _first(array) {
+export function first(): (array: number[]) => number {
+  return function _first(array: number[]) {
     return array[0];
   };
 }
 
-export function last() {
-  return function _last(array) {
+export function last(): (array: number[]) => number {
+  return function _last(array: number[]) {
     return array[array.length - 1];
   };
 }
 
-export function avg() {
-  return function _avg(array) {
+export function avg(): (array: number[]) => number {
+  return function _avg(array: number[]) {
     if (!array.length) {
       return undefined;
     }
@@ -125,7 +140,7 @@ export function sum() {
   return _sum;
 }
 
-export function _sum(array) {
+export function _sum(array: number[]) {
   if (!array.length) {
     return undefined;
   }

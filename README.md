@@ -27,7 +27,7 @@ npm install @esmj/monitor
 
 ## Basic Usage
 
-It works for both Javascript modules (ESM and CJS).
+It works for both Javascript modules (ESM and CJS) and has full Typescript support.
 
 ```javascript
 // server.js
@@ -143,7 +143,10 @@ const { monitor, metricsHistory, severity, start, stop } = createMonitoring({
       denialOfService: 50, // Request threshold for DoS detection
       distributedDenialOfService: 200, // Request threshold for DDoS detection
       deadlock: 20 // Active request threshold for deadlock detection
-    }
+    },
+    experimental: {
+      evaluateMemoryUsage: true
+    } // Enable experimental evaluations of threats
   }
 });
 ```
@@ -161,10 +164,10 @@ The severity analysis component evaluates multiple metrics to determine the heal
 ```javascript
 // Example severity assessment
 {
-  score: 16, // Severity score (0-20)
+  score: 80, // Severity score (0-100)
   level: 'critical', // One of: 'normal', 'low', 'medium', 'high', 'critical'
   records: [
-    { score: 16, metric: 'denialOfServiceDetected' }
+    { score: 80, metric: 'denialOfServiceDetected' }
     // Other factors contributing to the score
   ]
 }
@@ -328,7 +331,8 @@ new MetricsHistory(options?)
 
 - `size` (number): Current number of stored metrics
 - `current` (object): The most recently captured metrics
-- `custom` (object): Container for custom metric functions
+- `custom` (object): Container for custom metric functions. 
+Typed with `CustomMetrics` interface that can be extended, see [Custom Metrics](#custom-metrics)
 
 ##### Methods
 
@@ -366,13 +370,15 @@ new Severity(monitor, metricsHistory, shortMonitor, shortMetricsHistory, request
     - `denialOfService?` (number): Request threshold for DoS detection. Default: `10`
     - `distributedDenialOfService?` (number): Request threshold for DDoS detection. Default: `20`
     - `deadlock?` (number): Active request threshold for deadlock detection. Default: `10`
+  - `experimental?` (object): Enable experimental (under development) evaluations of specific threats.
+    - `evaluateMemoryUsage?` (boolean): Enable experimental memory usage evaluation. Default: `false`
 
 ##### Methods
 
 - `init()`: Initialize the severity analyzer
 - `getThreats()`: Calculate and return the current system severity assessment
   - **Returns**: (object): `{ score, level, records }`
-    - `score` (number): Severity score (0-20)
+    - `score` (number): Severity score (0-100)
     - `level` (string): One of: 'normal', 'low', 'medium', 'high', 'critical'
     - `records` (Array): Factors contributing to the severity score
 
@@ -393,9 +399,13 @@ Base class for all metric collectors.
 
 The MetricsHistory class allows you to create custom metrics by combining utility functions. Custom metrics are useful for calculating specific insights from your collected data without constantly writing the same code.
 
+Custom metrics are stored in the `metricsHistory.custom` object that is typed with 
+`CustomMetrics` `interface`, with names of the function as keys and their return types as values. 
+**You can extend this interface in your project to add types for your custom metrics by redeclaring the interface**
+
 ### Adding Custom Metrics
 
-```javascript
+```typescript
 import { pipe, memo, takeLast, avg } from '@esmj/monitor';
 
 // Add a custom metric function
@@ -418,6 +428,20 @@ console.log(`Average CPU usage over the last minute: ${cpuAverage}%`);
 
 // Memoized version - calculates once until metrics history changes
 const memoizedAvg = metricsHistory.custom.memoizedCPUAverage();
+```
+
+If you are using TypeScript, you can extend the `CustomMetrics` interface with your custom metrics functions:
+
+```typescript
+import { type MemoizedFunction, type MetricsFunction } from "@esmj/monitor";
+
+declare module '@esmj/monitor' {
+  export interface CustomMetrics {
+    averageCPULastMinute: MetricsFunction<number>;
+    // If you used utility function memo(), you can import also MemoizedMetricsFunction type to help you with typing your custom metrics functions.
+    memoizedCPUAverage: MemoizedMetricsFunction<MetricsFunction<number>>;
+  }
+}
 ```
 
 ### Common Custom Metric Examples

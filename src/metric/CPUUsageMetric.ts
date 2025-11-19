@@ -1,15 +1,15 @@
 import { cpuUsage } from 'node:process';
-import { Metric } from './Metric.mjs';
-import { roundToTwoDecimal } from './roundToTwoDecimal.mjs';
+import { Metric, type MonitorOptions } from './Metric.ts';
+import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 export class CPUUsageMetric extends Metric {
-  #cpuUsage = null;
+  #cpuUsage: NodeJS.CpuUsage = null;
 
   start() {
     this.#cpuUsage = cpuUsage();
   }
 
-  measure({ interval }) {
+  measure({ interval }: MonitorOptions) {
     const cpuUsageData = cpuUsage(this.#cpuUsage);
 
     return {

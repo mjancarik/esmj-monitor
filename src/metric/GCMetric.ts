@@ -1,9 +1,9 @@
 import { PerformanceObserver } from 'node:perf_hooks';
-import { Metric } from './Metric.mjs';
+import { Metric } from './Metric.ts';
 
 export class GCMetric extends Metric {
-  #performanceObserver = null;
-  #entry = null;
+  #performanceObserver: PerformanceObserver = null;
+  #entry: PerformanceEntry = null;
 
   start() {
     this.#performanceObserver = new PerformanceObserver((list) => {

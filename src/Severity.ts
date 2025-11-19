@@ -1,35 +1,79 @@
 import { pipe } from '@esmj/observable';
-import { avg, first, last, medianNoiseReduction, takeLast } from './math.mjs';
-import { memo } from './memo.mjs';
+import type { MetricsHistory } from './MetricsHistory.ts';
+import type { Monitor } from './Monitor.ts';
+import { avg, first, last, medianNoiseReduction, takeLast } from './math.ts';
+import { memo } from './memo.ts';
+import type {
+  RequestMetric,
+  RequestMetricRequestData,
+} from './metric/RequestMetric.ts';
 
-export const SEVERITY_LEVEL = {
+export const SEVERITY_LEVEL = Object.freeze({
   NORMAL: 'normal',
   LOW: 'low',
   MEDIUM: 'medium',
   HIGH: 'high',
   CRITICAL: 'critical',
+});
+
+const DEFAULT_OPTIONS = {
+  threshold: {
+    denialOfService: 10,
+    distributedDenialOfService: 20,
+    deadlock: 10,
+  },
+  experimental: {
+    evaluateMemoryUsage: false,
+  },
 };
 
+export type SeverityOptions = {
+  threshold?: {
+    denialOfService?: number;
+    distributedDenialOfService?: number;
+    deadlock?: number;
+  };
+  experimental?: {
+    evaluateMemoryUsage?: boolean;
+  };
+};
+
+type SeverityRecord = {
+  score: number;
+  metric: string;
+};
+
+type SeverityCalculation = {
+  score: number;
+  level: (typeof SEVERITY_LEVEL)[keyof typeof SEVERITY_LEVEL];
+  records: SeverityRecord[];
+};
+
+type RequestMetricFunction = (
+  request: RequestMetricRequestData,
+  shortRequest: RequestMetricRequestData,
+) => void;
+
 export class Severity {
-  #metricsHistory = null;
-  #monitor = null;
-  #shortMonitor = null;
-  #shortMetricsHistory = null;
-  #requestMetric = null;
-  #shortRequestMetric = null;
-  #previousCalculation = null;
-  #currentCalculation = null;
-  #requestMetrics = [];
-  #options = null;
+  #metricsHistory: MetricsHistory = null;
+  #monitor: Monitor = null;
+  #shortMonitor: Monitor = null;
+  #shortMetricsHistory: MetricsHistory = null;
+  #requestMetric: RequestMetric = null;
+  #shortRequestMetric: RequestMetric = null;
+  #previousCalculation: SeverityCalculation = null;
+  #currentCalculation: SeverityCalculation = null;
+  #requestMetrics: RequestMetricFunction[] = [];
+  #options: SeverityOptions = null;
 
   constructor(
-    monitor,
-    metricsHistory,
-    shortMonitor,
-    shortMetricsHistory,
-    requestMetric,
-    shortRequestMetric,
-    options = {},
+    monitor: Monitor,
+    metricsHistory: MetricsHistory,
+    shortMonitor: Monitor,
+    shortMetricsHistory: MetricsHistory,
+    requestMetric: RequestMetric,
+    shortRequestMetric: RequestMetric,
+    options: SeverityOptions = {},
   ) {
     this.#metricsHistory = metricsHistory;
     this.#monitor = monitor;
@@ -37,69 +81,88 @@ export class Severity {
     this.#shortMetricsHistory = shortMetricsHistory;
     this.#requestMetric = requestMetric;
     this.#shortRequestMetric = shortRequestMetric;
-    this.#options = options;
+    this.#options = {
+      ...DEFAULT_OPTIONS,
+      ...options,
+      threshold: {
+        ...DEFAULT_OPTIONS.threshold,
+        ...options?.threshold,
+      },
+      experimental: {
+        ...DEFAULT_OPTIONS.experimental,
+        ...options?.experimental,
+      },
+    };
   }
 
   init() {
     this.#initializeCustomMetrics();
 
     this.#requestMetrics = [
-      (request, shortRequest) => {
+      (
+        request: RequestMetricRequestData,
+        shortRequest: RequestMetricRequestData,
+      ) => {
         if (
-          shortRequest.count.total >
-          (this.#options?.threshold?.denialOfService ?? 10)
+          shortRequest.count.total > this.#options?.threshold?.denialOfService
         ) {
           this.#previousCalculation = {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
           };
           this.#currentCalculation.score = Math.min(
-            this.#currentCalculation.score + 15,
-            20,
+            this.#currentCalculation.score + 75,
+            100,
           );
           this.#currentCalculation.level = this.#mapScoreToSeverityLevel(
             this.#currentCalculation.score,
           );
           this.#currentCalculation.records.push({
-            score: 16,
+            score: 80,
             metric: 'denialOfServiceDetected',
           });
         }
       },
-      (request, shortRequest) => {
+      (
+        request: RequestMetricRequestData,
+        shortRequest: RequestMetricRequestData,
+      ) => {
         if (
           shortRequest.count.total >
-          (this.#options?.threshold?.distributedDenialOfService ?? 20)
+          this.#options?.threshold?.distributedDenialOfService
         ) {
           this.#previousCalculation = {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
           };
-          this.#currentCalculation.score = 20;
+          this.#currentCalculation.score = 100;
           this.#currentCalculation.level = this.#mapScoreToSeverityLevel(
             this.#currentCalculation.score,
           );
           this.#currentCalculation.records.push({
-            score: 20,
+            score: 100,
             metric: 'distributedDenialOfServiceDetected',
           });
         }
       },
-      (request, shortRequest) => {
-        if (request.count.active > (this.#options?.threshold?.deadlock ?? 10)) {
+      (
+        request: RequestMetricRequestData,
+        shortRequest: RequestMetricRequestData,
+      ) => {
+        if (request.count.active > this.#options?.threshold?.deadlock) {
           this.#previousCalculation = {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
           };
           this.#currentCalculation.score = Math.min(
-            this.#currentCalculation.score + 15,
-            20,
+            this.#currentCalculation.score + 75,
+            100,
           );
           this.#currentCalculation.level = this.#mapScoreToSeverityLevel(
             this.#currentCalculation.score,
           );
           this.#currentCalculation.records.push({
-            score: 16,
+            score: 80,
             metric: 'deadlockDetected',
           });
         }
@@ -118,12 +181,12 @@ export class Severity {
       this.#currentCalculation = this.#calculateSeverity();
     }
 
-    if (this.#currentCalculation.score < 16) {
+    if (this.#currentCalculation.score < 80) {
       const { request } = this.#requestMetric.measure();
       const { request: shortRequest } = this.#shortRequestMetric.measure();
 
       for (const metric of this.#requestMetrics) {
-        if (this.#currentCalculation.score < 16) {
+        if (this.#currentCalculation.score < 80) {
           metric(request, shortRequest);
         } else {
           break;
@@ -135,25 +198,29 @@ export class Severity {
   }
 
   #calculateSeverity() {
-    const records = [];
+    const records: SeverityRecord[] = [];
     let score = 0;
 
     this.#evaluateInsufficientData(records);
     this.#evaluateUtilization(records);
-    //this.#evaluateMemoryUsage(records);
+    this.#evaluateEventLoopDelay(records);
+
+    if (this.#options?.experimental?.evaluateMemoryUsage) {
+      this.#evaluateMemoryUsage(records);
+    }
 
     score = Math.min(
       records.reduce((acc, { score }) => acc + score, 0),
-      20,
+      100,
     );
 
     if (
       this.#previousCalculation &&
-      score < this.#previousCalculation.score - 1
+      score < this.#previousCalculation.score - 5
     ) {
-      score = this.#previousCalculation.score - 1;
+      score = this.#previousCalculation.score - 5;
       records.push(...this.#previousCalculation.records);
-      records.push({ score: -1, metric: 'decreasingSeverity' });
+      records.push({ score: -5, metric: 'decreasingSeverity' });
 
       if (records.length > 20) {
         records.splice(0, records.length - 20);
@@ -241,50 +308,50 @@ export class Severity {
     );
   }
 
-  #evaluateInsufficientData(records) {
+  #evaluateInsufficientData(records: SeverityRecord[]) {
     if (this.#shortMetricsHistory.size < 50 || this.#metricsHistory.size < 5) {
-      records.push({ score: 5, metric: 'insufficientMetricsHistory' });
+      records.push({ score: 30, metric: 'insufficientMetricsHistory' });
     }
 
     return records;
   }
 
-  #evaluateUtilization(records) {
+  #evaluateUtilization(records: SeverityRecord[]) {
     const averageUtilization =
       this.#metricsHistory.custom.getAverageUtilization();
     const currentUtilization =
       this.#metricsHistory.custom.getCurrentUtilization();
 
     if (averageUtilization >= 0.3) {
-      if (currentUtilization * 2 > averageUtilization) {
+      if (currentUtilization > averageUtilization * 2) {
         records.push({
-          score: 4 + currentUtilization / averageUtilization,
+          score: 20 + (currentUtilization / averageUtilization) * 5,
           metric: 'utilizationSpike',
         });
       }
 
       if (averageUtilization >= 0.9) {
-        records.push({ score: 16, metric: 'criticalUtilization' });
+        records.push({ score: 80, metric: 'criticalUtilization' }); // 80
         return records;
       }
 
       if (averageUtilization >= 0.8) {
-        records.push({ score: 12, metric: 'veryHighUtilization' });
+        records.push({ score: 65, metric: 'veryHighUtilization' }); // 60
         return records;
       }
 
       if (averageUtilization >= 0.7) {
-        records.push({ score: 8, metric: 'highUtilization' });
+        records.push({ score: 50, metric: 'highUtilization' }); // 40
         return records;
       }
 
       if (averageUtilization >= 0.6) {
-        records.push({ score: 6, metric: 'elevatedUtilization' });
+        records.push({ score: 35, metric: 'elevatedUtilization' }); // 30
         return records;
       }
 
       if (averageUtilization >= 0.5) {
-        records.push({ score: 4, metric: 'moderateUtilization' });
+        records.push({ score: 15, metric: 'moderateUtilization' }); // 20
         return records;
       }
     }
@@ -292,7 +359,7 @@ export class Severity {
     return records;
   }
 
-  #evaluateMemoryUsage(records) {
+  #evaluateMemoryUsage(records: SeverityRecord[]) {
     const currentMemoryPercent =
       this.#metricsHistory.custom.getCurrentMemoryPercent();
     const averageMemoryPercent =
@@ -301,22 +368,22 @@ export class Severity {
     // NO DETECT SMALL MEMORY LEAK
     if (currentMemoryPercent * 1.5 >= averageMemoryPercent) {
       if (currentMemoryPercent >= 90) {
-        records.push({ score: 13, metric: 'criticalMemoryUsage' });
+        records.push({ score: 65, metric: 'criticalMemoryUsage' });
         return records;
       }
 
       if (currentMemoryPercent >= 80) {
-        records.push({ score: 10, metric: 'highMemoryUsage' });
+        records.push({ score: 50, metric: 'highMemoryUsage' });
         return records;
       }
 
       if (currentMemoryPercent >= 70) {
-        records.push({ score: 8, metric: 'elevatedMemoryUsage' });
+        records.push({ score: 40, metric: 'elevatedMemoryUsage' });
         return records;
       }
 
       if (currentMemoryPercent >= 60) {
-        records.push({ score: 5, metric: 'moderateMemoryUsage' });
+        records.push({ score: 25, metric: 'moderateMemoryUsage' });
         return records;
       }
     }
@@ -324,11 +391,33 @@ export class Severity {
     return records;
   }
 
-  #mapScoreToSeverityLevel(score) {
-    if (score >= 16) return SEVERITY_LEVEL.CRITICAL;
-    if (score >= 13) return SEVERITY_LEVEL.HIGH;
-    if (score >= 10) return SEVERITY_LEVEL.MEDIUM;
-    if (score >= 5) return SEVERITY_LEVEL.LOW;
+  #evaluateEventLoopDelay(records: SeverityRecord[]) {
+    const averageEventLoopDelay =
+      this.#metricsHistory.custom.getAverageEventLoopDelay();
+    const currentEventLoopDelay =
+      this.#metricsHistory.custom.getEventLoopDelay();
+
+    const ratio =
+      currentEventLoopDelay /
+      (averageEventLoopDelay ? averageEventLoopDelay : 1);
+
+    const weight = Math.min(this.#metricsHistory.size / 15, 1);
+
+    if (ratio >= 2) {
+      records.push({ score: 5 + 10 * weight, metric: 'eventLoopDelaySpike' });
+      return records;
+    }
+
+    return records;
+  }
+
+  #mapScoreToSeverityLevel(
+    score: number,
+  ): (typeof SEVERITY_LEVEL)[keyof typeof SEVERITY_LEVEL] {
+    if (score >= 80) return SEVERITY_LEVEL.CRITICAL;
+    if (score >= 65) return SEVERITY_LEVEL.HIGH;
+    if (score >= 50) return SEVERITY_LEVEL.MEDIUM;
+    if (score >= 30) return SEVERITY_LEVEL.LOW;
     return SEVERITY_LEVEL.NORMAL;
   }
 }
