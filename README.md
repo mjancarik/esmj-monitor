@@ -27,7 +27,7 @@ npm install @esmj/monitor
 
 ## Basic Usage
 
-It works for both Javascript modules (ESM and CJS).
+It works for both Javascript modules (ESM and CJS) and has full Typescript support.
 
 ```javascript
 // server.js
@@ -331,7 +331,8 @@ new MetricsHistory(options?)
 
 - `size` (number): Current number of stored metrics
 - `current` (object): The most recently captured metrics
-- `custom` (object): Container for custom metric functions
+- `custom` (object): Container for custom metric functions. 
+Typed with `CustomMetrics` interface that can be extended, see [Custom Metrics](#custom-metrics)
 
 ##### Methods
 
@@ -398,8 +399,8 @@ Base class for all metric collectors.
 
 The MetricsHistory class allows you to create custom metrics by combining utility functions. Custom metrics are useful for calculating specific insights from your collected data without constantly writing the same code.
 
-Custom metrics are stored in the `metricsHistory.cusom` object that is typed with `interface` 
-`CustomMetrics` with names of the function as keys and their return types as values. 
+Custom metrics are stored in the `metricsHistory.custom` object that is typed with 
+`CustomMetrics` `interface`, with names of the function as keys and their return types as values. 
 **You can extend this interface in your project to add types for your custom metrics by redeclaring the interface**
 
 ### Adding Custom Metrics
@@ -429,14 +430,15 @@ console.log(`Average CPU usage over the last minute: ${cpuAverage}%`);
 const memoizedAvg = metricsHistory.custom.memoizedCPUAverage();
 ```
 
-Extending the `CustomMetrics` interface with your custom metrics functions:
+If you are using TypeScript, you can extend the `CustomMetrics` interface with your custom metrics functions:
 
 ```typescript
 import { type MemoizedFunction, type MetricsFunction } from "@esmj/monitor";
 
 declare module '@esmj/monitor' {
-  interface CustomMetrics {
+  export interface CustomMetrics {
     averageCPULastMinute: MetricsFunction<number>;
+    // If you used utility function memo(), you can import also MemoizedMetricsFunction type to help you with typing your custom metrics functions.
     memoizedCPUAverage: MemoizedMetricsFunction<MetricsFunction<number>>;
   }
 }
