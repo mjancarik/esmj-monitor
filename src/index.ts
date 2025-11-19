@@ -1,6 +1,7 @@
 import { pipe } from '@esmj/observable';
 import {
   type CustomMetrics,
+  type MetricsFunction,
   MetricsHistory,
   type MetricsHistoryEntry,
   type MetricsHistoryOptions,
@@ -17,7 +18,7 @@ import {
   sum,
   takeLast,
 } from './math.ts';
-import { memo } from './memo.ts';
+import { type MemoizedFunction, memo } from './memo.ts';
 import { CPUUsageMetric } from './metric/CPUUsageMetric.ts';
 import { EventLoopDelayMetric } from './metric/EventLoopDelayMetric.ts';
 import { EventLoopUtilizationMetric } from './metric/EventLoopUtilizationMetric.ts';
@@ -118,6 +119,8 @@ export {
   MetricsHistory,
   type MetricsHistoryEntry,
   type CustomMetrics,
+  type MetricsFunction,
+  type MemoizedFunction,
   Severity,
   SEVERITY_LEVEL,
   Metric,
