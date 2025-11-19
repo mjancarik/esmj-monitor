@@ -1,3 +1,28 @@
+## 0.7.0 (2025-11-19)
+
+* ci: 🎡 fix CI for node test runner ([b7f7739](https://github.com/mjancarik/esmj-monitor/commit/b7f7739))
+* ci: 🎡 update to node@24 ([1f52df2](https://github.com/mjancarik/esmj-monitor/commit/1f52df2))
+* Update README to remove BETA labels ([7f19e35](https://github.com/mjancarik/esmj-monitor/commit/7f19e35))
+* feat(): add typescript ([2b6670a](https://github.com/mjancarik/esmj-monitor/commit/2b6670a))
+* feat(): add typescript ([01389c9](https://github.com/mjancarik/esmj-monitor/commit/01389c9))
+* feat(): add typescript ([e4ac20c](https://github.com/mjancarik/esmj-monitor/commit/e4ac20c))
+* feat(): export types for adding custom metrics functions ([f62db96](https://github.com/mjancarik/esmj-monitor/commit/f62db96))
+* feat(): remove jest ([36dd0bc](https://github.com/mjancarik/esmj-monitor/commit/36dd0bc))
+* feat(): update docs ([0a705b9](https://github.com/mjancarik/esmj-monitor/commit/0a705b9))
+* feat(): update docs ([44df9e0](https://github.com/mjancarik/esmj-monitor/commit/44df9e0))
+* feat(): upgrade pacakges ([8c15b86](https://github.com/mjancarik/esmj-monitor/commit/8c15b86))
+* feat(Severity): add eveentLoopDelay and eluIdleTrend evaluations to the severity calculations ([4f05b93](https://github.com/mjancarik/esmj-monitor/commit/4f05b93))
+* feat(Severity): add eveentLoopDelay and eluIdleTrend evaluations to the severity calculations ([2848aa2](https://github.com/mjancarik/esmj-monitor/commit/2848aa2))
+* feat(Severity): add weight to eventLoopDelay calculations ([dd4e2b1](https://github.com/mjancarik/esmj-monitor/commit/dd4e2b1))
+* feat(Severity): change option 'experimental' to object ([9b6369a](https://github.com/mjancarik/esmj-monitor/commit/9b6369a))
+* feat(Severity): recalculate severity score from 0-20 to 0-100 ([32e3138](https://github.com/mjancarik/esmj-monitor/commit/32e3138))
+* feat(Severity): set first attempt limits and assigned score ([fbf1f4b](https://github.com/mjancarik/esmj-monitor/commit/fbf1f4b))
+* fix(): fix get cpu utilization pipe ([5a90827](https://github.com/mjancarik/esmj-monitor/commit/5a90827))
+* fix(): fix types ([674ba35](https://github.com/mjancarik/esmj-monitor/commit/674ba35))
+* fix(): fix types ([f3db279](https://github.com/mjancarik/esmj-monitor/commit/f3db279))
+
+
+
 ## <small>0.6.1 (2025-10-02)</small>
 
 * fix: 🐛 add back deprectecated method percentile and trend ([d035947](https://github.com/mjancarik/esmj-monitor/commit/d035947))
