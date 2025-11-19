@@ -398,9 +398,13 @@ Base class for all metric collectors.
 
 The MetricsHistory class allows you to create custom metrics by combining utility functions. Custom metrics are useful for calculating specific insights from your collected data without constantly writing the same code.
 
+Custom metrics are stored in the `metricsHistory.cusom` object that is typed with `interface` 
+`CustomMetrics` with names of the function as keys and their return types as values. 
+**You can extend this interface in your project to add types for your custom metrics by redeclaring the interface**
+
 ### Adding Custom Metrics
 
-```javascript
+```typescript
 import { pipe, memo, takeLast, avg } from '@esmj/monitor';
 
 // Add a custom metric function
@@ -423,6 +427,19 @@ console.log(`Average CPU usage over the last minute: ${cpuAverage}%`);
 
 // Memoized version - calculates once until metrics history changes
 const memoizedAvg = metricsHistory.custom.memoizedCPUAverage();
+```
+
+Extending the `CustomMetrics` interface with your custom metrics functions:
+
+```typescript
+import { type MemoizedFunction, type MetricsFunction } from "@esmj/monitor";
+
+declare module '@esmj/monitor' {
+  interface CustomMetrics {
+    averageCPULastMinute: MetricsFunction<number>;
+    memoizedCPUAverage: MemoizedMetricsFunction<MetricsFunction<number>>;
+  }
+}
 ```
 
 ### Common Custom Metric Examples
