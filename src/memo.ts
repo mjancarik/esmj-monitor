@@ -1,11 +1,12 @@
 export const IS_MEMO = Symbol('MemoSymbol');
-
+// biome-ignore lint/suspicious/noExplicitAny: Allow any for memoized function typing
 export type MemoizedFunction<T extends (...args: any[]) => any> = {
   (...args: Parameters<T>): ReturnType<T>;
   clear: () => void;
   [IS_MEMO]: true;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: Allow any for memoized function typing
 export function memo<T extends (...args: any[]) => any>(
   func: T,
 ): MemoizedFunction<T> {
