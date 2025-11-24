@@ -1,3 +1,14 @@
+## 0.8.0 (2025-11-24)
+
+* style: 💄 allow any ([78f55d0](https://github.com/mjancarik/esmj-monitor/commit/78f55d0))
+* feat: 🎸 add Fatal stage ([61d45ce](https://github.com/mjancarik/esmj-monitor/commit/61d45ce))
+
+
+### BREAKING CHANGE
+
+* 🧨 Added the new fatal stage.
+
+
 ## 0.7.0 (2025-11-19)
 
 * ci: 🎡 fix CI for node test runner ([b7f7739](https://github.com/mjancarik/esmj-monitor/commit/b7f7739))
