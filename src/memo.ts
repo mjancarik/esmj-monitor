@@ -1,34 +1,34 @@
 export const IS_MEMO = Symbol('MemoSymbol');
 
-export type MemoizedFunction<T extends (...args: unknown[]) => unknown> = T & {
+export type MemoizedFunction<T extends (...args: any[]) => any> = {
+  (...args: Parameters<T>): ReturnType<T>;
   clear: () => void;
   [IS_MEMO]: true;
-  _getType: () => ReturnType<T>;
 };
 
-export function memo<T extends (...args: unknown[]) => unknown>(
+export function memo<T extends (...args: any[]) => any>(
   func: T,
 ): MemoizedFunction<T> {
-  return ((func) => {
-    let cache: Record<string, unknown> = {};
+  let cache: Record<string, ReturnType<T>> = {};
 
-    const keyGenerator = (...rest: Parameters<T>) => rest.join('-');
-    const clear = () => {
-      cache = {};
-    };
-    const memoized = (...rest: Parameters<T>) => {
-      const key = keyGenerator(...rest);
+  const keyGenerator = (...rest: Parameters<T>): string => rest.join('-');
 
-      if (!cache[key]) {
-        cache[key] = func(...rest);
-      }
+  const clear = (): void => {
+    cache = {};
+  };
 
-      return cache[key];
-    };
+  const memoized = ((...rest: Parameters<T>): ReturnType<T> => {
+    const key = keyGenerator(...rest);
 
-    memoized.clear = clear;
-    memoized[IS_MEMO] = true;
+    if (!cache[key]) {
+      cache[key] = func(...rest);
+    }
 
-    return memoized;
-  })(func) as MemoizedFunction<T>;
+    return cache[key];
+  }) as MemoizedFunction<T>;
+
+  memoized.clear = clear;
+  memoized[IS_MEMO] = true;
+
+  return memoized;
 }

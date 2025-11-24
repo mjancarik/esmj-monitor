@@ -14,6 +14,7 @@ export const SEVERITY_LEVEL = Object.freeze({
   MEDIUM: 'medium',
   HIGH: 'high',
   CRITICAL: 'critical',
+  FATAL: 'fatal',
 });
 
 const DEFAULT_OPTIONS = {

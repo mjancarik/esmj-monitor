@@ -106,7 +106,7 @@ setInterval(() => {
   const threats = severity.getThreats();
   console.log(`Current severity: ${threats.level} (score: ${threats.score})`);
   
-  if (threats.level === 'high' || threats.level === 'critical') {
+  if (threats.level === 'high' || threats.level === 'critical' || threats.level === 'fatal') {
     console.warn('ALERT: System under stress!', threats.records);
   }
 }, 5000);
@@ -160,12 +160,13 @@ The severity analysis component evaluates multiple metrics to determine the heal
 - **Medium**: Performance degradation detected
 - **High**: Significant issues affecting performance
 - **Critical**: System under severe stress, immediate action required
+- **Fatal**: System on the verge of failure, emergency intervention needed
 
 ```javascript
 // Example severity assessment
 {
   score: 80, // Severity score (0-100)
-  level: 'critical', // One of: 'normal', 'low', 'medium', 'high', 'critical'
+  level: 'critical', // One of: 'normal', 'low', 'medium', 'high', 'critical', 'fatal'
   records: [
     { score: 80, metric: 'denialOfServiceDetected' }
     // Other factors contributing to the score
@@ -379,7 +380,7 @@ new Severity(monitor, metricsHistory, shortMonitor, shortMetricsHistory, request
 - `getThreats()`: Calculate and return the current system severity assessment
   - **Returns**: (object): `{ score, level, records }`
     - `score` (number): Severity score (0-100)
-    - `level` (string): One of: 'normal', 'low', 'medium', 'high', 'critical'
+    - `level` (string): One of: 'normal', 'low', 'medium', 'high', 'critical', 'fatal'
     - `records` (Array): Factors contributing to the severity score
 
 #### Metric
