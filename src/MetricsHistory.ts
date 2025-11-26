@@ -1,4 +1,4 @@
-import { type IObservable, Observer } from '@esmj/observable';
+import { Observer } from '@esmj/observable';
 import {
   type LinearRegressionInput,
   type Regression,
@@ -52,6 +52,11 @@ export interface MetricsHistoryEntry {
   request?: RequestMetricRequestData;
 }
 
+export interface MetricsHistoryEntryWithTimestamp {
+  timestamp: number;
+  metric: MetricsHistoryEntry;
+}
+
 export interface CustomMetrics {
   getCurrentUtilization?: MemoizedFunction<MetricsFunction<number>>;
   getAverageUtilization?: MemoizedFunction<MetricsFunction<number>>;
@@ -64,7 +69,7 @@ export interface CustomMetrics {
 
 export class MetricsHistory extends Observer {
   #options: MetricsHistoryOptions = { limit: 60 };
-  #history: MetricsHistoryEntry[] = [];
+  #history: MetricsHistoryEntryWithTimestamp[] = [];
   #regression: (array: LinearRegressionInput[]) => Regression = null;
   custom: CustomMetrics = {};
 
@@ -92,6 +97,10 @@ export class MetricsHistory extends Observer {
   }
 
   get current() {
+    return this.#history[this.#history.length - 1].metric;
+  }
+
+  get currentWithTimestamp() {
     return this.#history[this.#history.length - 1];
   }
 
@@ -113,7 +122,7 @@ export class MetricsHistory extends Observer {
   }
 
   next(metric: MetricsHistoryEntry) {
-    this.#history.push(metric);
+    this.#history.push({ timestamp: Date.now(), metric });
 
     if (this.#history.length > this.#options.limit) {
       this.#history.shift();
@@ -162,7 +171,7 @@ export class MetricsHistory extends Observer {
   getValues(key: string) {
     const keys = key?.split('.') ?? [];
 
-    return this.#history.map((metric) => {
+    return this.#history.map(({ metric }) => {
       return keys.reduce((result, key) => {
         // @ts-expect-error Nested keys
         return result?.[key];
