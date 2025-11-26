@@ -7,7 +7,13 @@ import {
   type MetricsHistoryOptions,
 } from './MetricsHistory.ts';
 import { Monitor } from './Monitor.ts';
-import { SEVERITY_LEVEL, Severity, type SeverityOptions } from './Severity.ts';
+import {
+  SEVERITY_LEVEL,
+  Severity,
+  type SeverityCalculation,
+  type SeverityLevel,
+  type SeverityOptions,
+} from './Severity.ts';
 import {
   avg,
   first,
@@ -28,6 +34,7 @@ import { MemoryUsageMetric } from './metric/MemoryUsageMetric.ts';
 import { Metric, type MonitorOptions } from './metric/Metric.ts';
 import { ProcessMetric } from './metric/ProcessMetric.ts';
 import { RequestMetric } from './metric/RequestMetric.ts';
+import { isSeverityLevelAtLeast } from './severityHelpers.ts';
 
 type MonitoringOptions = {
   monitor: MonitorOptions;
@@ -123,6 +130,9 @@ export {
   type MemoizedFunction,
   Severity,
   SEVERITY_LEVEL,
+  type SeverityLevel,
+  type SeverityCalculation,
+  isSeverityLevelAtLeast,
   Metric,
   CPUUsageMetric,
   EventLoopDelayMetric,
