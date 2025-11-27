@@ -425,9 +425,7 @@ export class Severity {
   #isFatalSeverity() {
     const last = this.#metricsHistory.currentWithTimestamp;
 
-    if (Date.now() - last.timestamp > 5000) {
-      return true;
-    }
+    return Date.now() - last.timestamp >= 4000;
   }
 
   #updateCriticalTimestamp() {
