@@ -115,6 +115,7 @@ setInterval(() => {
 setTimeout(() => {
   console.log(metricsHistory.size); // 15
   console.log(metricsHistory.current); // return last captured metric structure
+  console.log(metricsHistory.currentWithTimestamp); // return object with last captured metric structure and its timestamp
   
   // Custom metrics can be added and used
   metricsHistory.add('getCPUPercent', pipe(
@@ -332,6 +333,7 @@ new MetricsHistory(options?)
 
 - `size` (number): Current number of stored metrics
 - `current` (object): The most recently captured metrics
+- `currentWithTimestamp` (object): The most recent metrics with timestamp when it was taken
 - `custom` (object): Container for custom metric functions. 
 Typed with `CustomMetrics` interface that can be extended, see [Custom Metrics](#custom-metrics)
 
