@@ -17,6 +17,9 @@ export const SEVERITY_LEVEL = Object.freeze({
   FATAL: 'fatal',
 });
 
+const CRITICAL_TO_FATAL_THRESHOLD = 15000;
+const OLD_DATA_TO_FATAL_THRESHOLD = 4000;
+
 const DEFAULT_OPTIONS = {
   threshold: {
     denialOfService: 10,
@@ -187,7 +190,7 @@ export class Severity {
 
     if (
       this.#isFatalSeverity() ||
-      (this.#criticalSince && Date.now() - this.#criticalSince >= 15000)
+      (this.#criticalSince && Date.now() - this.#criticalSince >= CRITICAL_TO_FATAL_THRESHOLD)
     ) {
       this.#currentCalculation.level = SEVERITY_LEVEL.FATAL;
     }
@@ -425,7 +428,7 @@ export class Severity {
   #isFatalSeverity() {
     const last = this.#metricsHistory.currentWithTimestamp;
 
-    return Date.now() - last.timestamp >= 4000;
+    return Date.now() - last.timestamp >= OLD_DATA_TO_FATAL_THRESHOLD;
   }
 
   #updateCriticalTimestamp() {
