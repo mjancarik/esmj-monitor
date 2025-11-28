@@ -17,6 +17,9 @@ export const SEVERITY_LEVEL = Object.freeze({
   FATAL: 'fatal',
 });
 
+const CRITICAL_TO_FATAL_THRESHOLD = 15000;
+const OLD_DATA_TO_FATAL_THRESHOLD = 4000;
+
 const DEFAULT_OPTIONS = {
   threshold: {
     denialOfService: 10,
@@ -66,6 +69,7 @@ export class Severity {
   #currentCalculation: SeverityCalculation = null;
   #requestMetrics: RequestMetricFunction[] = [];
   #options: SeverityOptions = null;
+  #criticalSince: number | null = null;
 
   constructor(
     monitor: Monitor,
@@ -180,6 +184,15 @@ export class Severity {
     if (!this.#currentCalculation) {
       this.#previousCalculation = this.#currentCalculation;
       this.#currentCalculation = this.#calculateSeverity();
+
+      this.#updateCriticalTimestamp();
+    }
+
+    if (
+      this.#isFatalSeverity() ||
+      (this.#criticalSince && Date.now() - this.#criticalSince >= CRITICAL_TO_FATAL_THRESHOLD)
+    ) {
+      this.#currentCalculation.level = SEVERITY_LEVEL.FATAL;
     }
 
     if (this.#currentCalculation.score < 80) {
@@ -410,6 +423,24 @@ export class Severity {
     }
 
     return records;
+  }
+
+  #isFatalSeverity() {
+    const last = this.#metricsHistory.currentWithTimestamp;
+
+    return Date.now() - last.timestamp >= OLD_DATA_TO_FATAL_THRESHOLD;
+  }
+
+  #updateCriticalTimestamp() {
+    const level = this.#currentCalculation?.level;
+
+    if (level === SEVERITY_LEVEL.CRITICAL) {
+      if (this.#criticalSince === null) {
+        this.#criticalSince = Date.now();
+      }
+    } else {
+      this.#criticalSince = null;
+    }
   }
 
   #mapScoreToSeverityLevel(
