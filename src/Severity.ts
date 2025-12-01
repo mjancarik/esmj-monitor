@@ -424,7 +424,7 @@ export class Severity {
   }
 
   #isFatalSeverity() {
-    const last = this.#metricsHistory.currentWithTimestamp;
+    const last = this.#metricsHistory.current;
     const currentTimestamp = Date.now();
 
     return (

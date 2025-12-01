@@ -246,7 +246,7 @@ describe('Severity', () => {
         metricsHistory.next();
       }
 
-      const last = metricsHistory.currentWithTimestamp;
+      const last = metricsHistory.current;
       last.timestamp = last.timestamp - 4000;
 
       severity = new Severity(

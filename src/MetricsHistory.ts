@@ -15,6 +15,7 @@ export type MetricsHistoryOptions = {
 export type MetricsFunction<T = unknown> = (...args: unknown[]) => T;
 
 export interface MetricsHistoryEntry {
+  timestamp: number;
   cpuUsage?: {
     user: number;
     system: number;
@@ -52,11 +53,6 @@ export interface MetricsHistoryEntry {
   request?: RequestMetricRequestData;
 }
 
-export interface MetricsHistoryEntryWithTimestamp {
-  timestamp: number;
-  metric: MetricsHistoryEntry;
-}
-
 export interface CustomMetrics {
   getCurrentUtilization?: MemoizedFunction<MetricsFunction<number>>;
   getAverageUtilization?: MemoizedFunction<MetricsFunction<number>>;
@@ -69,7 +65,7 @@ export interface CustomMetrics {
 
 export class MetricsHistory extends Observer {
   #options: MetricsHistoryOptions = { limit: 60 };
-  #history: MetricsHistoryEntryWithTimestamp[] = [];
+  #history: MetricsHistoryEntry[] = [];
   #regression: (array: LinearRegressionInput[]) => Regression = null;
   custom: CustomMetrics = {};
 
@@ -97,10 +93,6 @@ export class MetricsHistory extends Observer {
   }
 
   get current() {
-    return this.#history[this.#history.length - 1].metric;
-  }
-
-  get currentWithTimestamp() {
     return this.#history[this.#history.length - 1];
   }
 
@@ -122,7 +114,7 @@ export class MetricsHistory extends Observer {
   }
 
   next(metric: MetricsHistoryEntry) {
-    this.#history.push({ timestamp: Date.now(), metric });
+    this.#history.push({ timestamp: Date.now(), ...metric });
 
     if (this.#history.length > this.#options.limit) {
       this.#history.shift();
@@ -171,7 +163,7 @@ export class MetricsHistory extends Observer {
   getValues(key: string) {
     const keys = key?.split('.') ?? [];
 
-    return this.#history.map(({ metric }) => {
+    return this.#history.map((metric) => {
       return keys.reduce((result, key) => {
         // @ts-expect-error Nested keys
         return result?.[key];

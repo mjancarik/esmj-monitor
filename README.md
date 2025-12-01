@@ -42,6 +42,7 @@ start();
 const { unsubscribe } = monitor.subscribe((metrics) => {
   console.log('Current metrics:', metrics);
 //   {
+//   timestamp: 1697049474653,
 //   cpuUsage: { user: 1692, system: 925, percent: 0.26 },
 //   eventLoopDelay: {
 //     min: 20.07,
@@ -115,7 +116,6 @@ setInterval(() => {
 setTimeout(() => {
   console.log(metricsHistory.size); // 15
   console.log(metricsHistory.current); // return last captured metric structure
-  console.log(metricsHistory.currentWithTimestamp); // return object with last captured metric structure and its timestamp
   
   // Custom metrics can be added and used
   metricsHistory.add('getCPUPercent', pipe(
@@ -334,8 +334,7 @@ new MetricsHistory(options?)
 ##### Properties
 
 - `size` (number): Current number of stored metrics
-- `current` (object): The most recently captured metrics
-- `currentWithTimestamp` (object): The most recent metrics with timestamp when it was taken
+- `current` (object): The most recently captured metrics with timestamp
 - `custom` (object): Container for custom metric functions. 
 Typed with `CustomMetrics` interface that can be extended, see [Custom Metrics](#custom-metrics)
 
