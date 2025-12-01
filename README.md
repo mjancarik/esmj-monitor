@@ -401,6 +401,23 @@ Base class for all metric collectors.
 - `afterMeasure(options)`: Called after each measurement
 - `stop(options)`: Called when monitoring stops
 
+##### Helpers
+
+To determine if a system should be considered under stress, there is exported helper `isSverityLevelAtLeast()` and object `SEVERITY_LEVEL` that provides all the currently supported levels:
+
+Basic usage:
+
+```typescript
+import { isSeverityLevelAtLeast, SEVERITY_LEVEL } from "@esmj/monitor";
+
+
+// get threats from your instance of Severity
+const threats = severity.getThreats();
+
+// pass threats and minimum severity level to check
+const underStress = isSeverityLevelAtLeast(threats, SEVERITY_LEVEL.HIGH);
+```
+
 ## Custom Metrics
 
 The MetricsHistory class allows you to create custom metrics by combining utility functions. Custom metrics are useful for calculating specific insights from your collected data without constantly writing the same code.
