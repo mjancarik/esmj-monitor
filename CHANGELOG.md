@@ -1,3 +1,10 @@
+## <small>0.8.1 (2025-12-01)</small>
+
+* feat(): add constant to keep order of the severity levels ([fe73911](https://github.com/mjancarik/esmj-monitor/commit/fe73911))
+* feat(): add new helper isSeverityLevelAtLeast ([dbd0673](https://github.com/mjancarik/esmj-monitor/commit/dbd0673))
+
+
+
 ## 0.8.0 (2025-11-24)
 
 * style: 💄 allow any ([78f55d0](https://github.com/mjancarik/esmj-monitor/commit/78f55d0))
