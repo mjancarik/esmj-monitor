@@ -16,6 +16,16 @@ export const SEVERITY_LEVEL = Object.freeze({
   CRITICAL: 'critical',
   FATAL: 'fatal',
 });
+export type SeverityLevel =
+  (typeof SEVERITY_LEVEL)[keyof typeof SEVERITY_LEVEL];
+export const SEVERITY_LEVEL_ORDER: SeverityLevel[] = [
+  SEVERITY_LEVEL.NORMAL,
+  SEVERITY_LEVEL.LOW,
+  SEVERITY_LEVEL.MEDIUM,
+  SEVERITY_LEVEL.HIGH,
+  SEVERITY_LEVEL.CRITICAL,
+  SEVERITY_LEVEL.FATAL,
+];
 
 const DEFAULT_OPTIONS = {
   threshold: {
@@ -44,9 +54,9 @@ type SeverityRecord = {
   metric: string;
 };
 
-type SeverityCalculation = {
+export type SeverityCalculation = {
   score: number;
-  level: (typeof SEVERITY_LEVEL)[keyof typeof SEVERITY_LEVEL];
+  level: SeverityLevel;
   records: SeverityRecord[];
 };
 
