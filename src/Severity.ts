@@ -17,14 +17,13 @@ export const SEVERITY_LEVEL = Object.freeze({
   FATAL: 'fatal',
 });
 
-const CRITICAL_TO_FATAL_THRESHOLD = 15000;
-const OLD_DATA_TO_FATAL_THRESHOLD = 4000;
-
 const DEFAULT_OPTIONS = {
   threshold: {
     denialOfService: 10,
     distributedDenialOfService: 20,
     deadlock: 10,
+    criticalToFatalTime: 15000,
+    oldDataToFatalTime: 4000,
   },
   experimental: {
     evaluateMemoryUsage: false,
@@ -36,6 +35,8 @@ export type SeverityOptions = {
     denialOfService?: number;
     distributedDenialOfService?: number;
     deadlock?: number;
+    criticalToFatalTime?: number;
+    oldDataToFatalTime?: number;
   };
   experimental?: {
     evaluateMemoryUsage?: boolean;
@@ -188,10 +189,7 @@ export class Severity {
       this.#updateCriticalTimestamp();
     }
 
-    if (
-      this.#isFatalSeverity() ||
-      (this.#criticalSince && Date.now() - this.#criticalSince >= CRITICAL_TO_FATAL_THRESHOLD)
-    ) {
+    if (this.#isFatalSeverity()) {
       this.#currentCalculation.level = SEVERITY_LEVEL.FATAL;
     }
 
@@ -427,8 +425,15 @@ export class Severity {
 
   #isFatalSeverity() {
     const last = this.#metricsHistory.currentWithTimestamp;
+    const currentTimestamp = Date.now();
 
-    return Date.now() - last.timestamp >= OLD_DATA_TO_FATAL_THRESHOLD;
+    return (
+      currentTimestamp - last.timestamp >=
+        this.#options.threshold.oldDataToFatalTime ||
+      (this.#criticalSince &&
+        currentTimestamp - this.#criticalSince >=
+          this.#options.threshold.criticalToFatalTime)
+    );
   }
 
   #updateCriticalTimestamp() {

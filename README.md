@@ -143,7 +143,9 @@ const { monitor, metricsHistory, severity, start, stop } = createMonitoring({
     threshold: {
       denialOfService: 50, // Request threshold for DoS detection
       distributedDenialOfService: 200, // Request threshold for DDoS detection
-      deadlock: 20 // Active request threshold for deadlock detection
+      deadlock: 20, // Active request threshold for deadlock detection
+      criticalToFatalTime: 10000, // Time threshold (in ms) to escalate from continues critical to fatal severity level
+      oldDataToFatalTime: 3000 // Time threshold (in ms) without collected metrics to escalate to fatal severity level
     },
     experimental: {
       evaluateMemoryUsage: true
@@ -373,6 +375,8 @@ new Severity(monitor, metricsHistory, shortMonitor, shortMetricsHistory, request
     - `denialOfService?` (number): Request threshold for DoS detection. Default: `10`
     - `distributedDenialOfService?` (number): Request threshold for DDoS detection. Default: `20`
     - `deadlock?` (number): Active request threshold for deadlock detection. Default: `10`
+    - `criticalToFatalTime?` (number): Time threshold (in ms) to escalate from critical to fatal. Default: `15000`
+    - `oldDataToFatalTime?` (number): Time threshold (in ms) without new metrics to escalate to fatal. Default: `4000`
   - `experimental?` (object): Enable experimental (under development) evaluations of specific threats.
     - `evaluateMemoryUsage?` (boolean): Enable experimental memory usage evaluation. Default: `false`
 
