@@ -8,7 +8,6 @@ import type {
   RequestMetricRequestData,
 } from './metric/RequestMetric.ts';
 
-// !! Keep the order from lowest to highest severity !!
 export const SEVERITY_LEVEL = Object.freeze({
   NORMAL: 'normal',
   LOW: 'low',
@@ -19,6 +18,14 @@ export const SEVERITY_LEVEL = Object.freeze({
 });
 export type SeverityLevel =
   (typeof SEVERITY_LEVEL)[keyof typeof SEVERITY_LEVEL];
+export const SEVERITY_LEVEL_ORDER: SeverityLevel[] = [
+  SEVERITY_LEVEL.NORMAL,
+  SEVERITY_LEVEL.LOW,
+  SEVERITY_LEVEL.MEDIUM,
+  SEVERITY_LEVEL.HIGH,
+  SEVERITY_LEVEL.CRITICAL,
+  SEVERITY_LEVEL.FATAL,
+];
 
 const DEFAULT_OPTIONS = {
   threshold: {
