@@ -104,8 +104,8 @@ export function percentile(number = 50) {
   };
 }
 
-export function takeLast(size: number): (array: number[]) => number[] {
-  return function _takeLast(array: number[]) {
+export function takeLast<T = number>(size: number): (array: T[]) => T[] {
+  return function _takeLast(array: T[]) {
     return array.slice(
       !size || size > array.length ? 0 : array.length - size,
       array.length,
@@ -113,14 +113,14 @@ export function takeLast(size: number): (array: number[]) => number[] {
   };
 }
 
-export function first(): (array: number[]) => number {
-  return function _first(array: number[]) {
+export function first<T = number>(): (array: T[]) => T {
+  return function _first(array: T[]) {
     return array[0];
   };
 }
 
-export function last(): (array: number[]) => number {
-  return function _last(array: number[]) {
+export function last<T = number>(): (array: T[]) => T {
+  return function _last(array: T[]) {
     return array[array.length - 1];
   };
 }

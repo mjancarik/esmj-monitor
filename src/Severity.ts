@@ -1,7 +1,16 @@
 import { pipe } from '@esmj/observable';
 import type { MetricsHistory } from './MetricsHistory.ts';
 import type { Monitor } from './Monitor.ts';
-import { avg, first, last, medianNoiseReduction, takeLast } from './math.ts';
+import { getRequestsDurationsAvg } from './helpers.ts';
+import {
+  type Regression,
+  avg,
+  first,
+  last,
+  linearRegression,
+  medianNoiseReduction,
+  takeLast,
+} from './math.ts';
 import { memo } from './memo.ts';
 import type {
   RequestMetric,
@@ -32,7 +41,7 @@ const DEFAULT_OPTIONS = {
     denialOfService: 10,
     distributedDenialOfService: 20,
     deadlock: 10,
-    criticalToFatalTime: 15000,
+    criticalToFatalTime: 5000,
     oldDataToFatalTime: 4000,
   },
   experimental: {
@@ -103,6 +112,10 @@ export class Severity {
       threshold: {
         ...DEFAULT_OPTIONS.threshold,
         ...options?.threshold,
+        criticalToFatalTime: Math.max(
+          2000,
+          DEFAULT_OPTIONS.threshold.criticalToFatalTime,
+        ),
       },
       experimental: {
         ...DEFAULT_OPTIONS.experimental,
@@ -434,16 +447,59 @@ export class Severity {
   }
 
   #isFatalSeverity() {
-    const last = this.#metricsHistory.current;
+    const lastMetrics = this.#metricsHistory.current;
     const currentTimestamp = Date.now();
 
-    return (
-      currentTimestamp - last.timestamp >=
-        this.#options.threshold.oldDataToFatalTime ||
-      (this.#criticalSince &&
-        currentTimestamp - this.#criticalSince >=
-          this.#options.threshold.criticalToFatalTime)
-    );
+    // Check if the gathered metrics are old -> server doesn't respond -> fatal
+    if (
+      currentTimestamp - lastMetrics.timestamp >=
+      this.#options.threshold.oldDataToFatalTime
+    ) {
+      return true;
+    }
+
+    // Check if there is critical level for more than 'options.threshold.criticalToFatalTime' seconds
+    if (
+      this.#criticalSince &&
+      currentTimestamp - this.#criticalSince >=
+        this.#options.threshold.criticalToFatalTime
+    ) {
+      const entriesToCheck = Math.round(
+        this.#options.threshold.criticalToFatalTime / 1000,
+      );
+
+      // Also check if there is an increasing trend of active requests -> server is not getting better -> possible fatal
+      const getRequestActiveCountsTrend = pipe(
+        this.#metricsHistory.from('request.count.active'),
+        takeLast(entriesToCheck),
+        linearRegression(),
+        (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
+      ) as () => Regression;
+
+      // Also check if the requests durations average has increasing trend -> server is not getting better -> possible fatal
+      const getRequestsDurationsTrend = pipe(
+        this.#metricsHistory.from('request.duration'),
+        takeLast<RequestMetricRequestData['duration']>(entriesToCheck),
+        (durations) => durations.map(getRequestsDurationsAvg),
+        linearRegression(),
+        (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
+      ) as () => Regression;
+
+      console.log(
+        'frodo',
+        getRequestActiveCountsTrend(),
+        getRequestsDurationsTrend(),
+      );
+
+      if (
+        getRequestActiveCountsTrend().slope > 0 &&
+        getRequestsDurationsTrend().slope > 0
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   #updateCriticalTimestamp() {

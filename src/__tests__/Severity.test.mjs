@@ -269,17 +269,27 @@ describe('Severity', () => {
 
       const originalNow = Date.now;
       let fakeNow = originalNow();
-
       global.Date.now = () => fakeNow;
 
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 5; i++) {
         fakeNow += 1000;
-        shortMetricsHistory.next();
-        metricsHistory.next();
-        const y = severity.getThreats();
+        shortMetricsHistory.next({
+          request: { count: { total: 0, active: i }, duration: { 10: 5 } },
+        });
+        metricsHistory.next({
+          request: { count: { total: 0, active: i }, duration: { 10: 5 } },
+        });
+        severity.getThreats();
       }
 
       fakeNow += 1000;
+      shortMetricsHistory.next({
+        request: { count: { total: 0, active: 6 }, duration: { 25: 5 } },
+      });
+      metricsHistory.next({
+        request: { count: { total: 0, active: 6 }, duration: { 25: 5 } },
+      });
+
       const threats = severity.getThreats();
 
       global.Date.now = originalNow;
