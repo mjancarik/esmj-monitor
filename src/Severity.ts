@@ -17,6 +17,8 @@ import type {
   RequestMetricRequestData,
 } from './metric/RequestMetric.ts';
 
+const CRITICAL_TO_FALTAL_TIME_THRESHOLD = 5000;
+
 export const SEVERITY_LEVEL = Object.freeze({
   NORMAL: 'normal',
   LOW: 'low',
@@ -41,7 +43,6 @@ const DEFAULT_OPTIONS = {
     denialOfService: 10,
     distributedDenialOfService: 20,
     deadlock: 10,
-    criticalToFatalTime: 5000,
     oldDataToFatalTime: 4000,
   },
   experimental: {
@@ -54,7 +55,6 @@ export type SeverityOptions = {
     denialOfService?: number;
     distributedDenialOfService?: number;
     deadlock?: number;
-    criticalToFatalTime?: number;
     oldDataToFatalTime?: number;
   };
   experimental?: {
@@ -112,10 +112,6 @@ export class Severity {
       threshold: {
         ...DEFAULT_OPTIONS.threshold,
         ...options?.threshold,
-        criticalToFatalTime: Math.max(
-          2000,
-          DEFAULT_OPTIONS.threshold.criticalToFatalTime,
-        ),
       },
       experimental: {
         ...DEFAULT_OPTIONS.experimental,
@@ -208,8 +204,6 @@ export class Severity {
     if (!this.#currentCalculation) {
       this.#previousCalculation = this.#currentCalculation;
       this.#currentCalculation = this.#calculateSeverity();
-
-      this.#updateCriticalTimestamp();
     }
 
     if (this.#isFatalSeverity()) {
@@ -262,9 +256,20 @@ export class Severity {
       }
     }
 
+    const level = this.#mapScoreToSeverityLevel(score);
+
+    // If the severity reaches the critical level, mark its start
+    if (level === SEVERITY_LEVEL.CRITICAL) {
+      if (this.#criticalSince === null) {
+        this.#criticalSince = Date.now();
+      }
+    } else {
+      this.#criticalSince = null;
+    }
+
     return {
       score,
-      level: this.#mapScoreToSeverityLevel(score),
+      level,
       records,
     };
   }
@@ -458,14 +463,14 @@ export class Severity {
       return true;
     }
 
-    // Check if there is critical level for more than 'options.threshold.criticalToFatalTime' seconds
+    // Check if there is the critical level for more than 'CRITICAL_TO_FALTAL_TIME_THRESHOLD' seconds
     if (
       this.#criticalSince &&
       currentTimestamp - this.#criticalSince >=
-        this.#options.threshold.criticalToFatalTime
+        CRITICAL_TO_FALTAL_TIME_THRESHOLD
     ) {
       const entriesToCheck = Math.round(
-        this.#options.threshold.criticalToFatalTime / 1000,
+          CRITICAL_TO_FALTAL_TIME_THRESHOLD / 1000,
       );
 
       // Also check if there is an increasing trend of active requests -> server is not getting better -> possible fatal
@@ -485,12 +490,6 @@ export class Severity {
         (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
       ) as () => Regression;
 
-      console.log(
-        'frodo',
-        getRequestActiveCountsTrend(),
-        getRequestsDurationsTrend(),
-      );
-
       if (
         getRequestActiveCountsTrend().slope > 0 &&
         getRequestsDurationsTrend().slope > 0
@@ -500,18 +499,6 @@ export class Severity {
     }
 
     return false;
-  }
-
-  #updateCriticalTimestamp() {
-    const level = this.#currentCalculation?.level;
-
-    if (level === SEVERITY_LEVEL.CRITICAL) {
-      if (this.#criticalSince === null) {
-        this.#criticalSince = Date.now();
-      }
-    } else {
-      this.#criticalSince = null;
-    }
   }
 
   #mapScoreToSeverityLevel(
