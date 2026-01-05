@@ -470,7 +470,7 @@ export class Severity {
         CRITICAL_TO_FALTAL_TIME_THRESHOLD
     ) {
       const entriesToCheck = Math.round(
-          CRITICAL_TO_FALTAL_TIME_THRESHOLD / 1000,
+        CRITICAL_TO_FALTAL_TIME_THRESHOLD / 1000,
       );
 
       // Also check if there is an increasing trend of active requests -> server is not getting better -> possible fatal
