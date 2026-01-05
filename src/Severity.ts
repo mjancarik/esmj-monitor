@@ -17,7 +17,7 @@ import type {
   RequestMetricRequestData,
 } from './metric/RequestMetric.ts';
 
-const CRITICAL_TO_FALTAL_TIME_THRESHOLD = 5000;
+const CRITICAL_TO_FATAL_TIME_THRESHOLD = 5000;
 
 export const SEVERITY_LEVEL = Object.freeze({
   NORMAL: 'normal',
@@ -463,14 +463,13 @@ export class Severity {
       return true;
     }
 
-    // Check if there is the critical level for more than 'CRITICAL_TO_FALTAL_TIME_THRESHOLD' seconds
+    // Check if there is the critical level for more than 'CRITICAL_TO_FATAL_TIME_THRESHOLD' seconds
     if (
       this.#criticalSince &&
-      currentTimestamp - this.#criticalSince >=
-        CRITICAL_TO_FALTAL_TIME_THRESHOLD
+      currentTimestamp - this.#criticalSince >= CRITICAL_TO_FATAL_TIME_THRESHOLD
     ) {
       const entriesToCheck = Math.round(
-        CRITICAL_TO_FALTAL_TIME_THRESHOLD / 1000,
+        CRITICAL_TO_FATAL_TIME_THRESHOLD / 1000,
       );
 
       // Also check if there is an increasing trend of active requests -> server is not getting better -> possible fatal
