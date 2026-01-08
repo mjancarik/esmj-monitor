@@ -197,6 +197,7 @@ export class Severity {
     this.#monitor.subscribe(() => {
       this.#previousCalculation = this.#currentCalculation;
       this.#currentCalculation = this.#calculateSeverity();
+      this.#updateCriticalTimestamp();
     });
   }
 
@@ -204,6 +205,7 @@ export class Severity {
     if (!this.#currentCalculation) {
       this.#previousCalculation = this.#currentCalculation;
       this.#currentCalculation = this.#calculateSeverity();
+      this.#updateCriticalTimestamp();
     }
 
     if (this.#isFatalSeverity()) {
@@ -256,20 +258,9 @@ export class Severity {
       }
     }
 
-    const level = this.#mapScoreToSeverityLevel(score);
-
-    // If the severity reaches the critical level, mark its start
-    if (level === SEVERITY_LEVEL.CRITICAL) {
-      if (this.#criticalSince === null) {
-        this.#criticalSince = Date.now();
-      }
-    } else {
-      this.#criticalSince = null;
-    }
-
     return {
       score,
-      level,
+      level: this.#mapScoreToSeverityLevel(score),
       records,
     };
   }
@@ -498,6 +489,18 @@ export class Severity {
     }
 
     return false;
+  }
+
+  #updateCriticalTimestamp() {
+    const level = this.#currentCalculation?.level;
+
+    if (level === SEVERITY_LEVEL.CRITICAL) {
+      if (this.#criticalSince === null) {
+        this.#criticalSince = Date.now();
+      }
+    } else {
+      this.#criticalSince = null;
+    }
   }
 
   #mapScoreToSeverityLevel(

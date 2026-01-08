@@ -238,33 +238,15 @@ describe('Severity', () => {
     });
 
     it('should detect stale metrics older than 4 seconds and return FATAL', () => {
-      metricsHistory = new MetricsHistory();
-      shortMetricsHistory = new MetricsHistory({ limit: 100 });
-
-      for (let i = 0; i < 100; i++) {
-        shortMetricsHistory.next();
-        metricsHistory.next();
-      }
-
       const last = metricsHistory.current;
       last.timestamp = last.timestamp - 4000;
-
-      severity = new Severity(
-        monitor,
-        metricsHistory,
-        shortMonitor,
-        shortMetricsHistory,
-        requestMetric,
-        shortRequestMetric,
-      );
-      severity.init();
 
       const threats = severity.getThreats();
 
       assert.strictEqual(threats.level, SEVERITY_LEVEL.FATAL);
     });
 
-    it('should detect CRITICAL persisting for 15 seconds and escalate to FATAL', () => {
+    it('should detect CRITICAL persisting for 5 seconds, escalate to FATAL, and reset when severity decreases', () => {
       metricsHistory.custom.getAverageUtilization = () => 0.95;
 
       const originalNow = Date.now;
@@ -273,28 +255,43 @@ describe('Severity', () => {
 
       for (let i = 0; i < 5; i++) {
         fakeNow += 1000;
-        shortMetricsHistory.next({
+        monitor.next({
           request: { count: { total: 0, active: i }, duration: { 10: 5 } },
         });
-        metricsHistory.next({
-          request: { count: { total: 0, active: i }, duration: { 10: 5 } },
-        });
-        severity.getThreats();
       }
 
       fakeNow += 1000;
-      shortMetricsHistory.next({
-        request: { count: { total: 0, active: 6 }, duration: { 25: 5 } },
-      });
-      metricsHistory.next({
+      monitor.next({
         request: { count: { total: 0, active: 6 }, duration: { 25: 5 } },
       });
 
-      const threats = severity.getThreats();
+      // should escalate to FATAL stage after 5 seconds in critical
+      let threats = severity.getThreats();
+      assert.strictEqual(threats.level, SEVERITY_LEVEL.FATAL);
+
+      // should reset the 'criticalSince' timestamp and not set FATAL,
+      // when the severity level decreases back from critical
+      metricsHistory.custom.getAverageUtilization = () => 0.2;
+      fakeNow += 1000;
+      monitor.next();
+
+      threats = severity.getThreats();
+      assert.notStrictEqual(threats.level, SEVERITY_LEVEL.FATAL);
+
+      // One more check if the timer got reset, if yes, this should not result into fatal level,
+      // since the critical stage will last only for 3 seconds
+      metricsHistory.custom.getAverageUtilization = () => 0.95;
+      for (let i = 0; i < 3; i++) {
+        fakeNow += 1000;
+        monitor.next({
+          request: { count: { total: 0, active: i + 10 }, duration: { 10: 5 } },
+        });
+      }
+
+      threats = severity.getThreats();
+      assert.notStrictEqual(threats.level, SEVERITY_LEVEL.FATAL);
 
       global.Date.now = originalNow;
-
-      assert.strictEqual(threats.level, SEVERITY_LEVEL.FATAL);
     });
   });
 
