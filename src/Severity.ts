@@ -1,12 +1,23 @@
 import { pipe } from '@esmj/observable';
 import type { MetricsHistory } from './MetricsHistory.ts';
 import type { Monitor } from './Monitor.ts';
-import { avg, first, last, medianNoiseReduction, takeLast } from './math.ts';
+import { getRequestsDurationsAvg } from './helpers.ts';
+import {
+  type Regression,
+  avg,
+  first,
+  last,
+  linearRegression,
+  medianNoiseReduction,
+  takeLast,
+} from './math.ts';
 import { memo } from './memo.ts';
 import type {
   RequestMetric,
   RequestMetricRequestData,
 } from './metric/RequestMetric.ts';
+
+const CRITICAL_TO_FATAL_TIME_THRESHOLD = 5000;
 
 export const SEVERITY_LEVEL = Object.freeze({
   NORMAL: 'normal',
@@ -32,6 +43,7 @@ const DEFAULT_OPTIONS = {
     denialOfService: 10,
     distributedDenialOfService: 20,
     deadlock: 10,
+    oldDataToFatalTime: 4000,
   },
   experimental: {
     evaluateMemoryUsage: false,
@@ -43,6 +55,7 @@ export type SeverityOptions = {
     denialOfService?: number;
     distributedDenialOfService?: number;
     deadlock?: number;
+    oldDataToFatalTime?: number;
   };
   experimental?: {
     evaluateMemoryUsage?: boolean;
@@ -76,6 +89,7 @@ export class Severity {
   #currentCalculation: SeverityCalculation = null;
   #requestMetrics: RequestMetricFunction[] = [];
   #options: SeverityOptions = null;
+  #criticalSince: number | null = null;
 
   constructor(
     monitor: Monitor,
@@ -183,6 +197,7 @@ export class Severity {
     this.#monitor.subscribe(() => {
       this.#previousCalculation = this.#currentCalculation;
       this.#currentCalculation = this.#calculateSeverity();
+      this.#updateCriticalTimestamp();
     });
   }
 
@@ -190,6 +205,11 @@ export class Severity {
     if (!this.#currentCalculation) {
       this.#previousCalculation = this.#currentCalculation;
       this.#currentCalculation = this.#calculateSeverity();
+      this.#updateCriticalTimestamp();
+    }
+
+    if (this.#isFatalSeverity()) {
+      this.#currentCalculation.level = SEVERITY_LEVEL.FATAL;
     }
 
     if (this.#currentCalculation.score < 80) {
@@ -420,6 +440,67 @@ export class Severity {
     }
 
     return records;
+  }
+
+  #isFatalSeverity() {
+    const lastMetrics = this.#metricsHistory.current;
+    const currentTimestamp = Date.now();
+
+    // Check if the gathered metrics are old -> server doesn't respond -> fatal
+    if (
+      currentTimestamp - lastMetrics.timestamp >=
+      this.#options.threshold.oldDataToFatalTime
+    ) {
+      return true;
+    }
+
+    // Check if there is the critical level for more than 'CRITICAL_TO_FATAL_TIME_THRESHOLD' seconds
+    if (
+      this.#criticalSince &&
+      currentTimestamp - this.#criticalSince >= CRITICAL_TO_FATAL_TIME_THRESHOLD
+    ) {
+      const entriesToCheck = Math.round(
+        CRITICAL_TO_FATAL_TIME_THRESHOLD / 1000,
+      );
+
+      // Also check if there is an increasing trend of active requests -> server is not getting better -> possible fatal
+      const getRequestActiveCountsTrend = pipe(
+        this.#metricsHistory.from('request.count.active'),
+        takeLast(entriesToCheck),
+        linearRegression(),
+        (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
+      ) as () => Regression;
+
+      // Also check if the requests durations average has increasing trend -> server is not getting better -> possible fatal
+      const getRequestsDurationsTrend = pipe(
+        this.#metricsHistory.from('request.duration'),
+        takeLast<RequestMetricRequestData['duration']>(entriesToCheck),
+        (durations) => durations.map(getRequestsDurationsAvg),
+        linearRegression(),
+        (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
+      ) as () => Regression;
+
+      if (
+        getRequestActiveCountsTrend().slope > 0 &&
+        getRequestsDurationsTrend().slope > 0
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  #updateCriticalTimestamp() {
+    const level = this.#currentCalculation?.level;
+
+    if (level === SEVERITY_LEVEL.CRITICAL) {
+      if (this.#criticalSince === null) {
+        this.#criticalSince = Date.now();
+      }
+    } else {
+      this.#criticalSince = null;
+    }
   }
 
   #mapScoreToSeverityLevel(
