@@ -111,6 +111,18 @@ setInterval(() => {
   }
 }, 5000);
 
+// For per-request threat assessment (e.g., in Express middleware)
+// app.use((req, res, next) => {
+//   const threats = severity.getThreats(req);
+//   
+//   if (threats.level === 'critical' || threats.level === 'fatal') {
+//     res.status(503).send('Service temporarily unavailable');
+//     return;
+//   }
+//   
+//   next();
+// });
+
 // Access metrics history and create custom metrics
 setTimeout(() => {
   console.log(metricsHistory.size); // 15
@@ -377,11 +389,18 @@ new Severity(monitor, metricsHistory, shortMonitor, shortMetricsHistory, request
 ##### Methods
 
 - `init()`: Initialize the severity analyzer
-- `getThreats()`: Calculate and return the current system severity assessment
+- `getThreats(req?)`: Calculate and return the current system severity assessment
+  - **Parameters**:
+    - `req?` (Request): Optional HTTP request object. Used for caching to ensure each request is evaluated only once
   - **Returns**: (object): `{ score, level, records }`
     - `score` (number): Severity score (0-100)
     - `level` (string): One of: 'normal', 'low', 'medium', 'high', 'critical', 'fatal'
     - `records` (Array): Factors contributing to the severity score
+  - **Behavior**:
+    - If called with the same `req` object multiple times, returns the cached result immediately
+    - Evaluates system metrics (CPU utilization, memory usage, event loop delay)
+    - Checks for request-based threats (DoS, DDoS, deadlock) if severity score < 80
+    - Each unique request is evaluated only once to prevent duplicate threat detection
 
 #### Metric
 

@@ -76,6 +76,7 @@ export class Severity {
   #currentCalculation: SeverityCalculation = null;
   #requestMetrics: RequestMetricFunction[] = [];
   #options: SeverityOptions = null;
+  #evaluatedRequests: WeakMap<Request, SeverityCalculation> = new WeakMap();
 
   constructor(
     monitor: Monitor,
@@ -186,7 +187,11 @@ export class Severity {
     });
   }
 
-  getThreats() {
+  getThreats(req?: Request) {
+    if (req && this.#evaluatedRequests.has(req)) {
+      return this.#evaluatedRequests.get(req);
+    }
+
     if (!this.#currentCalculation) {
       this.#previousCalculation = this.#currentCalculation;
       this.#currentCalculation = this.#calculateSeverity();
@@ -203,6 +208,10 @@ export class Severity {
           break;
         }
       }
+    }
+
+    if (req) {
+      this.#evaluatedRequests.set(req, this.#currentCalculation);
     }
 
     return this.#currentCalculation;
