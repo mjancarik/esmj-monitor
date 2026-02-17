@@ -78,7 +78,6 @@ function createMonitoring(options: MonitoringOptions) {
 
   monitor.subscribe(metricsHistory);
   shortMonitor.subscribe(shortMetricsHistory);
-  shortMonitor.subscribe(shortMetricsHistory);
 
   monitor.add(cpuUsageMetric);
   monitor.add(eventLoopDelayMetric);
