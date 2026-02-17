@@ -225,6 +225,8 @@ export class Severity {
       }
     }
 
+    console.log('Severity calculation:', this.#currentCalculation);
+
     return this.#currentCalculation;
   }
 
@@ -446,9 +448,11 @@ export class Severity {
     const lastMetrics = this.#metricsHistory.current;
     const currentTimestamp = Date.now();
 
+    console.log('Checking fatal severity with last metrics timestamp:', lastMetrics?.timestamp, 'current timestamp:', currentTimestamp);
+
     // Check if the gathered metrics are old -> server doesn't respond -> fatal
     if (
-      currentTimestamp - lastMetrics.timestamp >=
+      currentTimestamp - lastMetrics?.timestamp >=
       this.#options.threshold.oldDataToFatalTime
     ) {
       return true;
@@ -464,21 +468,25 @@ export class Severity {
       );
 
       // Also check if there is an increasing trend of active requests -> server is not getting better -> possible fatal
-      const getRequestActiveCountsTrend = pipe(
-        this.#metricsHistory.from('request.count.active'),
-        takeLast(entriesToCheck),
-        linearRegression(),
-        (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
-      ) as () => Regression;
+      const getRequestActiveCountsTrend = memo(
+        pipe(
+          this.#metricsHistory.from('request.count.active'),
+          takeLast(entriesToCheck),
+          linearRegression(),
+          (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
+        ) as () => Regression,
+      );
 
       // Also check if the requests durations average has increasing trend -> server is not getting better -> possible fatal
-      const getRequestsDurationsTrend = pipe(
-        this.#metricsHistory.from('request.duration'),
-        takeLast<RequestMetricRequestData['duration']>(entriesToCheck),
-        (durations) => durations.map(getRequestsDurationsAvg),
-        linearRegression(),
-        (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
-      ) as () => Regression;
+      const getRequestsDurationsTrend = memo(
+        pipe(
+          this.#metricsHistory.from('request.duration'),
+          takeLast<RequestMetricRequestData['duration']>(entriesToCheck),
+          (durations) => durations.map(getRequestsDurationsAvg),
+          linearRegression(),
+          (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
+        ) as () => Regression,
+      );
 
       if (
         getRequestActiveCountsTrend().slope > 0 &&
