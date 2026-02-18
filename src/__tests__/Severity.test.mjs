@@ -248,24 +248,27 @@ describe('Severity', () => {
 
     it('should detect CRITICAL persisting for 5 seconds, escalate to FATAL, and reset when severity decreases', () => {
       metricsHistory.custom.getAverageUtilization = () => 0.95;
+      metricsHistory.custom.getRequestsActiveCountsTrend = () => ({
+        slope: 1,
+        yIntercept: 0,
+        predict: () => 0,
+      });
+      metricsHistory.custom.getRequestsDurationsTrend = () => ({
+        slope: 1,
+        yIntercept: 0,
+        predict: () => 0,
+      });
 
       const originalNow = Date.now;
       let fakeNow = originalNow();
       global.Date.now = () => fakeNow;
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         fakeNow += 1000;
-        monitor.next({
-          request: { count: { total: 0, active: i }, duration: { 10: 5 } },
-        });
+        monitor.next();
       }
 
-      fakeNow += 1000;
-      monitor.next({
-        request: { count: { total: 0, active: 6 }, duration: { 25: 5 } },
-      });
-
-      // should escalate to FATAL stage after 5 seconds in critical
+      // should escalate to FATAL stage after more than 5 seconds in critical
       let threats = severity.getThreats();
       assert.strictEqual(threats.level, SEVERITY_LEVEL.FATAL);
 
@@ -283,9 +286,7 @@ describe('Severity', () => {
       metricsHistory.custom.getAverageUtilization = () => 0.95;
       for (let i = 0; i < 3; i++) {
         fakeNow += 1000;
-        monitor.next({
-          request: { count: { total: 0, active: i + 10 }, duration: { 10: 5 } },
-        });
+        monitor.next();
       }
 
       threats = severity.getThreats();

@@ -60,6 +60,8 @@ export interface CustomMetrics {
   getAverageMemoryPercent?: MemoizedFunction<MetricsFunction<number>>;
   getEventLoopDelay?: MemoizedFunction<MetricsFunction<number>>;
   getAverageEventLoopDelay?: MemoizedFunction<MetricsFunction<number>>;
+  getRequestsActiveCountsTrend?: MemoizedFunction<MetricsFunction<Regression>>;
+  getRequestsDurationsTrend?: MemoizedFunction<MetricsFunction<Regression>>;
   [key: string]: MemoizedFunction<MetricsFunction>;
 }
 
