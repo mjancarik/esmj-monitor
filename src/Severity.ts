@@ -18,6 +18,7 @@ import type {
 } from './metric/RequestMetric.ts';
 
 const CRITICAL_TO_FATAL_TIME_THRESHOLD = 5000;
+const ENTRIES_TO_CHECK_FOR_EVALUATING_FATAL = CRITICAL_TO_FATAL_TIME_THRESHOLD / 1000;
 
 export const SEVERITY_LEVEL = Object.freeze({
   NORMAL: 'normal',
@@ -343,7 +344,7 @@ export class Severity {
       memo(
         pipe(
           this.#metricsHistory.from('request.count.active'),
-          takeLast(Math.round(CRITICAL_TO_FATAL_TIME_THRESHOLD / 1000)),
+          takeLast(Math.round(ENTRIES_TO_CHECK_FOR_EVALUATING_FATAL)),
           linearRegression(),
           (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
         ),
@@ -356,7 +357,7 @@ export class Severity {
         pipe(
           this.#metricsHistory.from('request.duration'),
           takeLast<RequestMetricRequestData['duration']>(
-            Math.round(CRITICAL_TO_FATAL_TIME_THRESHOLD / 1000),
+            Math.round(ENTRIES_TO_CHECK_FOR_EVALUATING_FATAL),
           ),
           (durations) => durations.map(getRequestsDurationsAvg),
           linearRegression(),
