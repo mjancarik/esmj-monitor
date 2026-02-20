@@ -236,6 +236,64 @@ describe('Severity', () => {
         threats.records.some((r) => r.metric === 'denialOfServiceDetected'),
       );
     });
+
+    it('should detect stale metrics older than 4 seconds and return FATAL', () => {
+      const last = metricsHistory.current;
+      last.timestamp = last.timestamp - 4000;
+
+      const threats = severity.getThreats();
+
+      assert.strictEqual(threats.level, SEVERITY_LEVEL.FATAL);
+    });
+
+    it('should detect CRITICAL persisting for 5 seconds, escalate to FATAL, and reset when severity decreases', () => {
+      metricsHistory.custom.getAverageUtilization = () => 0.95;
+      metricsHistory.custom.getRequestsActiveCountsTrend = () => ({
+        slope: 1,
+        yIntercept: 0,
+        predict: () => 0,
+      });
+      metricsHistory.custom.getRequestsDurationsTrend = () => ({
+        slope: 1,
+        yIntercept: 0,
+        predict: () => 0,
+      });
+
+      const originalNow = Date.now;
+      let fakeNow = originalNow();
+      global.Date.now = () => fakeNow;
+
+      for (let i = 0; i < 6; i++) {
+        fakeNow += 1000;
+        monitor.next();
+      }
+
+      // should escalate to FATAL stage after more than 5 seconds in critical
+      let threats = severity.getThreats();
+      assert.strictEqual(threats.level, SEVERITY_LEVEL.FATAL);
+
+      // should reset the 'criticalSince' timestamp and not set FATAL,
+      // when the severity level decreases back from critical
+      metricsHistory.custom.getAverageUtilization = () => 0.2;
+      fakeNow += 1000;
+      monitor.next();
+
+      threats = severity.getThreats();
+      assert.notStrictEqual(threats.level, SEVERITY_LEVEL.FATAL);
+
+      // One more check if the timer got reset, if yes, this should not result into fatal level,
+      // since the critical stage will last only for 3 seconds
+      metricsHistory.custom.getAverageUtilization = () => 0.95;
+      for (let i = 0; i < 3; i++) {
+        fakeNow += 1000;
+        monitor.next();
+      }
+
+      threats = severity.getThreats();
+      assert.notStrictEqual(threats.level, SEVERITY_LEVEL.FATAL);
+
+      global.Date.now = originalNow;
+    });
   });
 
   describe('severity level mapping', () => {

@@ -1,4 +1,4 @@
-import { type IObservable, Observer } from '@esmj/observable';
+import { Observer } from '@esmj/observable';
 import {
   type LinearRegressionInput,
   type Regression,
@@ -15,6 +15,7 @@ export type MetricsHistoryOptions = {
 export type MetricsFunction<T = unknown> = (...args: unknown[]) => T;
 
 export interface MetricsHistoryEntry {
+  timestamp: number;
   cpuUsage?: {
     user: number;
     system: number;
@@ -59,6 +60,8 @@ export interface CustomMetrics {
   getAverageMemoryPercent?: MemoizedFunction<MetricsFunction<number>>;
   getEventLoopDelay?: MemoizedFunction<MetricsFunction<number>>;
   getAverageEventLoopDelay?: MemoizedFunction<MetricsFunction<number>>;
+  getRequestsActiveCountsTrend?: MemoizedFunction<MetricsFunction<Regression>>;
+  getRequestsDurationsTrend?: MemoizedFunction<MetricsFunction<Regression>>;
   [key: string]: MemoizedFunction<MetricsFunction>;
 }
 
@@ -113,7 +116,7 @@ export class MetricsHistory extends Observer {
   }
 
   next(metric: MetricsHistoryEntry) {
-    this.#history.push(metric);
+    this.#history.push({ timestamp: Date.now(), ...metric });
 
     if (this.#history.length > this.#options.limit) {
       this.#history.shift();

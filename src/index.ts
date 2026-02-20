@@ -14,6 +14,7 @@ import {
   type SeverityLevel,
   type SeverityOptions,
 } from './Severity.ts';
+import { isSeverityLevelAtLeast } from './helpers.ts';
 import {
   avg,
   first,
@@ -34,7 +35,6 @@ import { MemoryUsageMetric } from './metric/MemoryUsageMetric.ts';
 import { Metric, type MonitorOptions } from './metric/Metric.ts';
 import { ProcessMetric } from './metric/ProcessMetric.ts';
 import { RequestMetric } from './metric/RequestMetric.ts';
-import { isSeverityLevelAtLeast } from './severityHelpers.ts';
 
 type MonitoringOptions = {
   monitor: MonitorOptions;
@@ -77,7 +77,6 @@ function createMonitoring(options: MonitoringOptions) {
   severity.init();
 
   monitor.subscribe(metricsHistory);
-  shortMonitor.subscribe(shortMetricsHistory);
   shortMonitor.subscribe(shortMetricsHistory);
 
   monitor.add(cpuUsageMetric);

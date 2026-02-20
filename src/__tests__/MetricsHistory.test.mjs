@@ -95,6 +95,8 @@ describe('MetricsHistory', () => {
       percentile(0),
     )();
 
+    const { timestamp, ...rest } = metricsHistory.current;
+
     assert.strictEqual(percentile100, 45);
     assert.strictEqual(percentile80, 39.00000000000001);
     assert.strictEqual(percentile75, 33.75);
@@ -103,7 +105,7 @@ describe('MetricsHistory', () => {
     assert.strictEqual(percentile20, 2.6000000000000005);
     assert.strictEqual(percentile0, 1);
     assert.strictEqual(metricsHistory.size, 6);
-    assert.deepEqual(metricsHistory.current, {
+    assert.deepEqual(rest, {
       cpuUsage: { user: 1200, system: 900, percent: 30 },
       memoryUsage: { rss: 150, heapTotal: 80 },
     });

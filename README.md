@@ -42,6 +42,7 @@ start();
 const { unsubscribe } = monitor.subscribe((metrics) => {
   console.log('Current metrics:', metrics);
 //   {
+//   timestamp: 1697049474653,
 //   cpuUsage: { user: 1692, system: 925, percent: 0.26 },
 //   eventLoopDelay: {
 //     min: 20.07,
@@ -154,7 +155,8 @@ const { monitor, metricsHistory, severity, start, stop } = createMonitoring({
     threshold: {
       denialOfService: 50, // Request threshold for DoS detection
       distributedDenialOfService: 200, // Request threshold for DDoS detection
-      deadlock: 20 // Active request threshold for deadlock detection
+      deadlock: 20, // Active request threshold for deadlock detection
+      oldDataToFatalTime: 3000 // Time threshold (in ms) without collected metrics to escalate to fatal severity level
     },
     experimental: {
       evaluateMemoryUsage: true
@@ -343,7 +345,7 @@ new MetricsHistory(options?)
 ##### Properties
 
 - `size` (number): Current number of stored metrics
-- `current` (object): The most recently captured metrics
+- `current` (object): The most recently captured metrics with timestamp
 - `custom` (object): Container for custom metric functions. 
 Typed with `CustomMetrics` interface that can be extended, see [Custom Metrics](#custom-metrics)
 
@@ -383,6 +385,7 @@ new Severity(monitor, metricsHistory, shortMonitor, shortMetricsHistory, request
     - `denialOfService?` (number): Request threshold for DoS detection. Default: `10`
     - `distributedDenialOfService?` (number): Request threshold for DDoS detection. Default: `20`
     - `deadlock?` (number): Active request threshold for deadlock detection. Default: `10`
+    - `oldDataToFatalTime?` (number): Time threshold (in ms) without new metrics to escalate to fatal. Default: `4000`
   - `experimental?` (object): Enable experimental (under development) evaluations of specific threats.
     - `evaluateMemoryUsage?` (boolean): Enable experimental memory usage evaluation. Default: `false`
 
