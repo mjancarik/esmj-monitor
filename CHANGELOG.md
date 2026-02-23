@@ -1,3 +1,25 @@
+## 0.9.0 (2026-02-23)
+
+* feat: 🎸 add cache mechanism by request to getThreats ([8f50bdb](https://github.com/mjancarik/esmj-monitor/commit/8f50bdb))
+* feat(): add evaluations for fatal to reflect worsening stats ([5436cb6](https://github.com/mjancarik/esmj-monitor/commit/5436cb6))
+* feat(): add new FATAL level evaluation ([a218578](https://github.com/mjancarik/esmj-monitor/commit/a218578))
+* feat(): add options to set custom fatalThresholds ([2d6052a](https://github.com/mjancarik/esmj-monitor/commit/2d6052a))
+* feat(): add tests for FATAL stage ([8fc02de](https://github.com/mjancarik/esmj-monitor/commit/8fc02de))
+* feat(): add updateCriticalTimestamp to monitor subscription callback ([3c407be](https://github.com/mjancarik/esmj-monitor/commit/3c407be))
+* feat(): linter fix ([8513691](https://github.com/mjancarik/esmj-monitor/commit/8513691))
+* feat(): memoize functions used to evalute fatal stage ([47891e4](https://github.com/mjancarik/esmj-monitor/commit/47891e4))
+* feat(): memoize functions used to evalute fatal stage ([82a058c](https://github.com/mjancarik/esmj-monitor/commit/82a058c))
+* feat(): memoize functions used to evalute fatal stage ([96d653c](https://github.com/mjancarik/esmj-monitor/commit/96d653c))
+* feat(): move timestamp inside MetricsHistoryEntry ([fe115b1](https://github.com/mjancarik/esmj-monitor/commit/fe115b1))
+* feat(): optimize updating of the criticalSince timestamp ([d822976](https://github.com/mjancarik/esmj-monitor/commit/d822976))
+* feat(): optimize updating of the criticalSince timestamp ([76ad734](https://github.com/mjancarik/esmj-monitor/commit/76ad734))
+* feat(): rewrite threshold values for fatal to constants ([b9246c0](https://github.com/mjancarik/esmj-monitor/commit/b9246c0))
+* feat(): update docs ([e928d2d](https://github.com/mjancarik/esmj-monitor/commit/e928d2d))
+* fix(): double subscription to shorMonitor ([5e8e392](https://github.com/mjancarik/esmj-monitor/commit/5e8e392))
+* fix(): typo in CRITICAL_TO_FATAL_TIME_THRESHOLD constant name ([f3994ec](https://github.com/mjancarik/esmj-monitor/commit/f3994ec))
+
+
+
 ## <small>0.8.1 (2025-12-01)</small>
 
 * feat(): add constant to keep order of the severity levels ([fe73911](https://github.com/mjancarik/esmj-monitor/commit/fe73911))
