@@ -2,11 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ $default-branch, master, main ]
+    branches: [ main, master ]
     tags:
       - '*'
   pull_request:
-    branches: [ master, main ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
         run: npm test
       - name: Linter
         run: npm run lint
-      - name: Build packages
+      - name: Build
         run: npm run build
 
       - name: Cache dist
@@ -93,7 +93,6 @@ jobs:
 
       - run: npm publish
 
-
   release:
     if: github.event_name == 'push' && contains(github.ref, '/tags/v')
     name: Github release
@@ -120,6 +119,6 @@ jobs:
         run: node utils/extractChangelog.mjs
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body_path: current-changelog.txt
