@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { SEVERITY_LEVEL } from '../Severity.ts';
 import { getRequestsDurationsAvg, isSeverityLevelAtLeast } from '../helpers.ts';
+import { SEVERITY_LEVEL } from '../Severity.ts';
 
 function getThreats(level) {
   return {

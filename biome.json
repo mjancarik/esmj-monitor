@@ -1,12 +1,12 @@
 {
   "files": {
-    "include": [
-      "src/**/*.mjs",
-      "utils/**/*.mjs",
-      "src/**/*.ts",
-      "utils/**/*.ts"
-    ],
-    "ignore": [".history/**/*"]
+    "includes": [
+      "**/src/**/*.mjs",
+      "**/utils/**/*.mjs",
+      "**/src/**/*.ts",
+      "**/utils/**/*.ts",
+      "!**/.history/**/*"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -17,11 +17,11 @@
     "lineWidth": 80,
     "attributePosition": "auto"
   },
-  "organizeImports": { "enabled": true },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "complexity": {
         "noForEach": "off"
       },
@@ -45,7 +45,7 @@
   },
   "overrides": [
     {
-      "include": ["*.json"],
+      "includes": ["**/*.json"],
       "formatter": {
         "indentWidth": 2
       }

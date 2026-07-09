@@ -1,5 +1,5 @@
 import { memoryUsage } from 'node:process';
-import { type HeapInfo, getHeapStatistics } from 'node:v8';
+import { getHeapStatistics, type HeapInfo } from 'node:v8';
 import { Metric } from './Metric.ts';
 import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 

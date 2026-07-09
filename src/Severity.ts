@@ -1,9 +1,8 @@
 import { pipe } from '@esmj/observable';
+import { getRequestsDurationsAvg } from './helpers.ts';
 import type { MetricsHistory } from './MetricsHistory.ts';
 import type { Monitor } from './Monitor.ts';
-import { getRequestsDurationsAvg } from './helpers.ts';
 import {
-  type Regression,
   avg,
   first,
   last,
@@ -81,16 +80,17 @@ type RequestMetricFunction = (
 ) => void;
 
 export class Severity {
-  #metricsHistory: MetricsHistory = null;
-  #monitor: Monitor = null;
-  #shortMonitor: Monitor = null;
-  #shortMetricsHistory: MetricsHistory = null;
-  #requestMetric: RequestMetric = null;
-  #shortRequestMetric: RequestMetric = null;
-  #previousCalculation: SeverityCalculation = null;
-  #currentCalculation: SeverityCalculation = null;
+  #metricsHistory!: MetricsHistory;
+  #monitor!: Monitor;
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: reserved for future use
+  #shortMonitor!: Monitor;
+  #shortMetricsHistory!: MetricsHistory;
+  #requestMetric!: RequestMetric;
+  #shortRequestMetric!: RequestMetric;
+  #previousCalculation: SeverityCalculation | null = null;
+  #currentCalculation: SeverityCalculation | null = null;
   #requestMetrics: RequestMetricFunction[] = [];
-  #options: SeverityOptions = null;
+  #options!: SeverityOptions;
   #criticalSince: number | null = null;
   #evaluatedRequests: WeakMap<Request, SeverityCalculation> = new WeakMap();
 
@@ -128,12 +128,15 @@ export class Severity {
 
     this.#requestMetrics = [
       (
-        request: RequestMetricRequestData,
+        _request: RequestMetricRequestData,
         shortRequest: RequestMetricRequestData,
       ) => {
         if (
-          shortRequest.count.total > this.#options?.threshold?.denialOfService
+          shortRequest.count.total >
+          (this.#options.threshold?.denialOfService ??
+            DEFAULT_OPTIONS.threshold.denialOfService)
         ) {
+          if (!this.#currentCalculation) return;
           this.#previousCalculation = {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
@@ -152,13 +155,15 @@ export class Severity {
         }
       },
       (
-        request: RequestMetricRequestData,
+        _request: RequestMetricRequestData,
         shortRequest: RequestMetricRequestData,
       ) => {
         if (
           shortRequest.count.total >
-          this.#options?.threshold?.distributedDenialOfService
+          (this.#options.threshold?.distributedDenialOfService ??
+            DEFAULT_OPTIONS.threshold.distributedDenialOfService)
         ) {
+          if (!this.#currentCalculation) return;
           this.#previousCalculation = {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
@@ -175,9 +180,14 @@ export class Severity {
       },
       (
         request: RequestMetricRequestData,
-        shortRequest: RequestMetricRequestData,
+        _shortRequest: RequestMetricRequestData,
       ) => {
-        if (request.count.active > this.#options?.threshold?.deadlock) {
+        if (
+          request.count.active >
+          (this.#options.threshold?.deadlock ??
+            DEFAULT_OPTIONS.threshold.deadlock)
+        ) {
+          if (!this.#currentCalculation) return;
           this.#previousCalculation = {
             ...this.#currentCalculation,
             records: [...this.#currentCalculation.records],
@@ -281,7 +291,9 @@ export class Severity {
       'getCurrentUtilization',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopUtilization.utilization'),
+          this.#metricsHistory.from(
+            'eventLoopUtilization.utilization',
+          ) as unknown as () => number[],
           takeLast(5),
           medianNoiseReduction(),
           last(),
@@ -293,7 +305,9 @@ export class Severity {
       'getAverageUtilization',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopUtilization.utilization'),
+          this.#metricsHistory.from(
+            'eventLoopUtilization.utilization',
+          ) as unknown as () => number[],
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -305,7 +319,9 @@ export class Severity {
       'getCurrentMemoryPercent',
       memo(
         pipe(
-          this.#metricsHistory.from('memoryUsage.percent'),
+          this.#metricsHistory.from(
+            'memoryUsage.percent',
+          ) as unknown as () => number[],
           takeLast(1),
           last(),
           (value) => value ?? 0,
@@ -317,7 +333,9 @@ export class Severity {
       'getAverageMemoryPercent',
       memo(
         pipe(
-          this.#metricsHistory.from('memoryUsage.percent'),
+          this.#metricsHistory.from(
+            'memoryUsage.percent',
+          ) as unknown as () => number[],
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -329,7 +347,9 @@ export class Severity {
       'getEventLoopDelay',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopDelay.percentile80'),
+          this.#metricsHistory.from(
+            'eventLoopDelay.percentile80',
+          ) as unknown as () => number[],
           takeLast(1),
           first(),
           (value) => value ?? 0,
@@ -341,7 +361,9 @@ export class Severity {
       'getAverageEventLoopDelay',
       memo(
         pipe(
-          this.#metricsHistory.from('eventLoopDelay.percentile80'),
+          this.#metricsHistory.from(
+            'eventLoopDelay.percentile80',
+          ) as unknown as () => number[],
           takeLast(15),
           avg(),
           (value) => value ?? 0,
@@ -353,7 +375,9 @@ export class Severity {
       'getRequestsActiveCountsTrend',
       memo(
         pipe(
-          this.#metricsHistory.from('request.count.active'),
+          this.#metricsHistory.from(
+            'request.count.active',
+          ) as unknown as () => number[],
           takeLast(Math.round(ENTRIES_TO_CHECK_FOR_EVALUATING_FATAL)),
           linearRegression(),
           (value) => value ?? { slope: 0, yIntercept: 0, predict: () => 0 },
@@ -365,7 +389,9 @@ export class Severity {
       'getRequestsDurationsTrend',
       memo(
         pipe(
-          this.#metricsHistory.from('request.duration'),
+          this.#metricsHistory.from(
+            'request.duration',
+          ) as unknown as () => RequestMetricRequestData['duration'][],
           takeLast<RequestMetricRequestData['duration']>(
             Math.round(ENTRIES_TO_CHECK_FOR_EVALUATING_FATAL),
           ),
@@ -387,9 +413,9 @@ export class Severity {
 
   #evaluateUtilization(records: SeverityRecord[]) {
     const averageUtilization =
-      this.#metricsHistory.custom.getAverageUtilization();
+      this.#metricsHistory.custom.getAverageUtilization?.() ?? 0;
     const currentUtilization =
-      this.#metricsHistory.custom.getCurrentUtilization();
+      this.#metricsHistory.custom.getCurrentUtilization?.() ?? 0;
 
     if (averageUtilization >= 0.3) {
       if (currentUtilization > averageUtilization * 2) {
@@ -430,9 +456,9 @@ export class Severity {
 
   #evaluateMemoryUsage(records: SeverityRecord[]) {
     const currentMemoryPercent =
-      this.#metricsHistory.custom.getCurrentMemoryPercent();
+      this.#metricsHistory.custom.getCurrentMemoryPercent?.() ?? 0;
     const averageMemoryPercent =
-      this.#metricsHistory.custom.getAverageMemoryPercent();
+      this.#metricsHistory.custom.getAverageMemoryPercent?.() ?? 0;
 
     // NO DETECT SMALL MEMORY LEAK
     if (currentMemoryPercent * 1.5 >= averageMemoryPercent) {
@@ -462,9 +488,9 @@ export class Severity {
 
   #evaluateEventLoopDelay(records: SeverityRecord[]) {
     const averageEventLoopDelay =
-      this.#metricsHistory.custom.getAverageEventLoopDelay();
+      this.#metricsHistory.custom.getAverageEventLoopDelay?.() ?? 0;
     const currentEventLoopDelay =
-      this.#metricsHistory.custom.getEventLoopDelay();
+      this.#metricsHistory.custom.getEventLoopDelay?.() ?? 0;
 
     const ratio =
       currentEventLoopDelay /
@@ -487,7 +513,8 @@ export class Severity {
     // Check if the gathered metrics are old -> server doesn't respond -> fatal
     if (
       currentTimestamp - lastMetrics?.timestamp >=
-      this.#options.threshold.oldDataToFatalTime
+      (this.#options.threshold?.oldDataToFatalTime ??
+        DEFAULT_OPTIONS.threshold.oldDataToFatalTime)
     ) {
       return true;
     }
@@ -498,9 +525,10 @@ export class Severity {
       currentTimestamp - this.#criticalSince >= CRITICAL_TO_FATAL_TIME_THRESHOLD
     ) {
       if (
-        this.#metricsHistory.custom.getRequestsActiveCountsTrend?.().slope >
-          0 &&
-        this.#metricsHistory.custom.getRequestsDurationsTrend?.().slope > 0
+        (this.#metricsHistory.custom.getRequestsActiveCountsTrend?.()?.slope ??
+          0) > 0 &&
+        (this.#metricsHistory.custom.getRequestsDurationsTrend?.()?.slope ??
+          0) > 0
       ) {
         return true;
       }

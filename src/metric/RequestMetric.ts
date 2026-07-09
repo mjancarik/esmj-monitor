@@ -158,7 +158,7 @@ export class RequestMetric extends Metric {
       );
 
       diagnostics_channel.unsubscribe(NET_EVENT_START, this.#createConnection);
-    } catch (error) {
+    } catch (_error) {
       //console.warn('Diagnostics channel is not available:', error);
     }
   }
@@ -170,7 +170,10 @@ export class RequestMetric extends Metric {
   _createRequest({
     request,
     response,
-  }: { request: Request; response: Response }) {
+  }: {
+    request: Request;
+    response: Response;
+  }) {
     request[requestStart] = performance.now();
     request[this.#requestKey] = false; // Add a flag
 
@@ -205,7 +208,10 @@ export class RequestMetric extends Metric {
   _finishRequest({
     request,
     response,
-  }: { request: Request; response: Response }) {
+  }: {
+    request: Request;
+    response: Response;
+  }) {
     const duration = performance.now() - request[requestStart];
     const durationKey =
       duration <= 10

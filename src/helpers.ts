@@ -1,7 +1,6 @@
 import type { RequestMetricRequestData } from './metric/RequestMetric.ts';
 
 import {
-  SEVERITY_LEVEL,
   SEVERITY_LEVEL_ORDER,
   type SeverityCalculation,
   type SeverityLevel,

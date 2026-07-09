@@ -1,4 +1,5 @@
 import { pipe } from '@esmj/observable';
+import { isSeverityLevelAtLeast } from './helpers.ts';
 import {
   type CustomMetrics,
   type MetricsFunction,
@@ -7,14 +8,6 @@ import {
   type MetricsHistoryOptions,
 } from './MetricsHistory.ts';
 import { Monitor } from './Monitor.ts';
-import {
-  SEVERITY_LEVEL,
-  Severity,
-  type SeverityCalculation,
-  type SeverityLevel,
-  type SeverityOptions,
-} from './Severity.ts';
-import { isSeverityLevelAtLeast } from './helpers.ts';
 import {
   avg,
   first,
@@ -35,6 +28,13 @@ import { MemoryUsageMetric } from './metric/MemoryUsageMetric.ts';
 import { Metric, type MonitorOptions } from './metric/Metric.ts';
 import { ProcessMetric } from './metric/ProcessMetric.ts';
 import { RequestMetric } from './metric/RequestMetric.ts';
+import {
+  SEVERITY_LEVEL,
+  Severity,
+  type SeverityCalculation,
+  type SeverityLevel,
+  type SeverityOptions,
+} from './Severity.ts';
 
 type MonitoringOptions = {
   monitor: MonitorOptions;
@@ -110,35 +110,35 @@ function createMonitoring(options: MonitoringOptions) {
 }
 
 export {
-  pipe,
-  memo,
-  linearRegression,
-  percentile,
-  medianNoiseReduction,
-  takeLast,
-  first,
-  last,
   avg,
-  sum,
-  createMonitoring,
-  Monitor,
-  MetricsHistory,
-  type MetricsHistoryEntry,
-  type CustomMetrics,
-  type MetricsFunction,
-  type MemoizedFunction,
-  Severity,
-  SEVERITY_LEVEL,
-  type SeverityLevel,
-  type SeverityCalculation,
-  isSeverityLevelAtLeast,
-  Metric,
   CPUUsageMetric,
+  type CustomMetrics,
+  createMonitoring,
   EventLoopDelayMetric,
   EventLoopUtilizationMetric,
-  LoadAverageMetric,
-  MemoryUsageMetric,
-  ProcessMetric,
+  first,
   GCMetric,
+  isSeverityLevelAtLeast,
+  LoadAverageMetric,
+  last,
+  linearRegression,
+  type MemoizedFunction,
+  MemoryUsageMetric,
+  Metric,
+  type MetricsFunction,
+  MetricsHistory,
+  type MetricsHistoryEntry,
+  Monitor,
+  medianNoiseReduction,
+  memo,
+  ProcessMetric,
+  percentile,
+  pipe,
   RequestMetric,
+  SEVERITY_LEVEL,
+  Severity,
+  type SeverityCalculation,
+  type SeverityLevel,
+  sum,
+  takeLast,
 };

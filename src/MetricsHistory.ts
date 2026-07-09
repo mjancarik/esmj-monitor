@@ -1,9 +1,9 @@
 import { Observer } from '@esmj/observable';
 import {
   type LinearRegressionInput,
-  type Regression,
   linearRegression,
   percentile,
+  type Regression,
 } from './math.ts';
 import { IS_MEMO, type MemoizedFunction, memo } from './memo.ts';
 import type { RequestMetricRequestData } from './metric/RequestMetric.ts';
@@ -62,13 +62,13 @@ export interface CustomMetrics {
   getAverageEventLoopDelay?: MemoizedFunction<MetricsFunction<number>>;
   getRequestsActiveCountsTrend?: MemoizedFunction<MetricsFunction<Regression>>;
   getRequestsDurationsTrend?: MemoizedFunction<MetricsFunction<Regression>>;
-  [key: string]: MemoizedFunction<MetricsFunction>;
+  [key: string]: MemoizedFunction<MetricsFunction> | undefined;
 }
 
 export class MetricsHistory extends Observer {
   #options: MetricsHistoryOptions = { limit: 60 };
   #history: MetricsHistoryEntry[] = [];
-  #regression: (array: LinearRegressionInput[]) => Regression = null;
+  #regression!: (array: LinearRegressionInput[]) => Regression;
   custom: CustomMetrics = {};
 
   // TODO deprecated, remove in next major version
@@ -116,9 +116,9 @@ export class MetricsHistory extends Observer {
   }
 
   next(metric: MetricsHistoryEntry) {
-    this.#history.push({ timestamp: Date.now(), ...metric });
+    this.#history.push({ ...metric, timestamp: Date.now() });
 
-    if (this.#history.length > this.#options.limit) {
+    if (this.#history.length > (this.#options.limit ?? 60)) {
       this.#history.shift();
     }
 
@@ -141,14 +141,14 @@ export class MetricsHistory extends Observer {
 
   // TODO deprecated, remove in next major version
   percentile(key: keyof MetricsHistoryEntry, number: number) {
-    const array = this.getValues(key);
+    const array = this.getValues(key) as unknown as number[];
 
     return percentile(number)(array);
   }
 
   // TODO deprecated, remove in next major version
   trend(key: keyof MetricsHistoryEntry, limit: number) {
-    let array = this.getValues(key);
+    let array = this.getValues(key) as unknown as LinearRegressionInput[];
 
     array = array.slice(
       !limit || limit > array.length ? 0 : array.length - limit,
