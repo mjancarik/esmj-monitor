@@ -27,7 +27,7 @@
     "version": "npm run changelog && git add CHANGELOG.md",
     "postversion": "git push && git push --tags",
     "dev": "node_modules/.bin/rollup --watch -c --bundleConfigAsCjs",
-    "build": "node_modules/.bin/tsup --dts",
+    "build": "node_modules/.bin/tsup && node_modules/.bin/tsc -p tsconfig.dts.json",
     "test": "node --test --experimental-strip-types",
     "test:watch": "npm run test -- --watch",
     "lint": "biome check --no-errors-on-unmatched",

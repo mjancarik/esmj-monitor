@@ -115,8 +115,11 @@ export class MetricsHistory extends Observer {
     this.#clearMemo();
   }
 
-  next(metric: MetricsHistoryEntry) {
-    this.#history.push({ ...metric, timestamp: Date.now() });
+  next(metric: unknown) {
+    this.#history.push({
+      ...(metric as MetricsHistoryEntry),
+      timestamp: Date.now(),
+    });
 
     if (this.#history.length > (this.#options.limit ?? 60)) {
       this.#history.shift();

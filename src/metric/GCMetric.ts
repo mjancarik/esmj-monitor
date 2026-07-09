@@ -2,8 +2,8 @@ import { PerformanceObserver } from 'node:perf_hooks';
 import { Metric } from './Metric.ts';
 
 export class GCMetric extends Metric {
-  #performanceObserver: PerformanceObserver = null;
-  #entry: PerformanceEntry = null;
+  #performanceObserver: PerformanceObserver | null = null;
+  #entry: PerformanceEntry | null = null;
 
   start() {
     this.#performanceObserver = new PerformanceObserver((list) => {
@@ -42,6 +42,6 @@ export class GCMetric extends Metric {
   }
 
   stop() {
-    this.#performanceObserver.disconnect();
+    this.#performanceObserver?.disconnect();
   }
 }

@@ -4,7 +4,7 @@ import { Metric } from './Metric.ts';
 import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 export class MemoryUsageMetric extends Metric {
-  #heapStatistics: HeapInfo = null;
+  #heapStatistics: HeapInfo | null = null;
 
   start() {
     this.#heapStatistics = getHeapStatistics();
@@ -16,7 +16,8 @@ export class MemoryUsageMetric extends Metric {
     return {
       memoryUsage: {
         percent: roundToTwoDecimal(
-          (memoryUsageData.rss / this.#heapStatistics.heap_size_limit) * 100,
+          (memoryUsageData.rss / (this.#heapStatistics?.heap_size_limit ?? 1)) *
+            100,
         ),
         rss: this.#toMB(memoryUsageData.rss),
         heapTotal: this.#toMB(memoryUsageData.heapTotal),

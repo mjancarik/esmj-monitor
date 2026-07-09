@@ -163,17 +163,15 @@ export class RequestMetric extends Metric {
     }
   }
 
-  _createConnection(_message: string) {
+  _createConnection(_message: unknown) {
     this.#count.connections++;
   }
 
-  _createRequest({
-    request,
-    response,
-  }: {
-    request: Request;
-    response: Response;
-  }) {
+  _createRequest(message: unknown) {
+    const { request, response } = message as {
+      request: Request;
+      response: Response;
+    };
     request[requestStart] = performance.now();
     request[this.#requestKey] = false; // Add a flag
 
@@ -205,14 +203,12 @@ export class RequestMetric extends Metric {
     this.#count.active++;
   }
 
-  _finishRequest({
-    request,
-    response,
-  }: {
-    request: Request;
-    response: Response;
-  }) {
-    const duration = performance.now() - request[requestStart];
+  _finishRequest(message: unknown) {
+    const { request, response } = message as {
+      request: Request;
+      response: Response;
+    };
+    const duration = performance.now() - (request[requestStart] ?? 0);
     const durationKey =
       duration <= 10
         ? 10
@@ -235,10 +231,13 @@ export class RequestMetric extends Metric {
                         : 'Infinity';
     this.#durationHistogram[durationKey]++;
 
-    if (response?.statusCode >= 400 && response?.statusCode < 500) {
-      this.#count.clientErrors++;
-    } else if (response?.statusCode >= 500) {
-      this.#count.httpServerErrors++;
+    const statusCode = response?.statusCode;
+    if (statusCode !== undefined) {
+      if (statusCode >= 400 && statusCode < 500) {
+        this.#count.clientErrors++;
+      } else if (statusCode >= 500) {
+        this.#count.httpServerErrors++;
+      }
     }
   }
 }

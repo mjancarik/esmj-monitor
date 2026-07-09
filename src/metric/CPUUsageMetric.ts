@@ -3,21 +3,22 @@ import { Metric, type MonitorOptions } from './Metric.ts';
 import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 
 export class CPUUsageMetric extends Metric {
-  #cpuUsage: NodeJS.CpuUsage = null;
+  #cpuUsage: NodeJS.CpuUsage | null = null;
 
   start() {
     this.#cpuUsage = cpuUsage();
   }
 
   measure({ interval }: MonitorOptions) {
-    const cpuUsageData = cpuUsage(this.#cpuUsage);
+    const cpuUsageData = cpuUsage(this.#cpuUsage ?? undefined);
 
     return {
       cpuUsage: {
         user: cpuUsageData.user,
         system: cpuUsageData.system,
         percent: roundToTwoDecimal(
-          (100 * (cpuUsageData.user + cpuUsageData.system)) / (interval * 1000),
+          (100 * (cpuUsageData.user + cpuUsageData.system)) /
+            ((interval ?? 1000) * 1000),
         ),
       },
     };

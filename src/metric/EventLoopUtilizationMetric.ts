@@ -6,8 +6,8 @@ import { roundToTwoDecimal } from './roundToTwoDecimal.ts';
 const { eventLoopUtilization } = performance;
 
 export class EventLoopUtilizationMetric extends Metric {
-  #eventLoopUtilizationDataStart: EventLoopUtilization = null;
-  #eventLoopUtilizationDataEnd: EventLoopUtilization = null;
+  #eventLoopUtilizationDataStart: EventLoopUtilization | undefined = undefined;
+  #eventLoopUtilizationDataEnd: EventLoopUtilization | undefined = undefined;
 
   start() {
     this.#eventLoopUtilizationDataStart = eventLoopUtilization();
@@ -37,7 +37,7 @@ export class EventLoopUtilizationMetric extends Metric {
   }
 
   stop() {
-    this.#eventLoopUtilizationDataStart = null;
-    this.#eventLoopUtilizationDataEnd = null;
+    this.#eventLoopUtilizationDataStart = undefined;
+    this.#eventLoopUtilizationDataEnd = undefined;
   }
 }

@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "es2022",
-    "moduleResolution": "node",
+    "module": "Node16",
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "noEmit": true,
     "noImplicitAny": true,
-    "types": ["node"]
+    "types": ["node"],
+    "resolvePackageJsonExports": false
   },
   "include": ["src/**/*"]
 }

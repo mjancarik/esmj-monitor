@@ -3,7 +3,7 @@ import type { Metric, MonitorOptions } from './metric/Metric.ts';
 
 export class Monitor extends Observable {
   #options = { interval: 1000 };
-  #intervalId: NodeJS.Timeout | null = null;
+  #intervalId: ReturnType<typeof setInterval> | undefined = undefined;
   #metrics: Metric[] = [];
 
   constructor(options?: MonitorOptions) {
@@ -37,6 +37,7 @@ export class Monitor extends Observable {
 
   stop() {
     clearInterval(this.#intervalId);
+    this.#intervalId = undefined;
     this.#runMetricMethod('stop', this.#options);
     this.complete();
   }

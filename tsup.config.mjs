@@ -9,7 +9,6 @@ export default [
         format: ['esm', 'cjs'],
         treeshake: true,
         shims: false,
-        dts: true,
         outExtension({ format }) {
             return {
                 js: format === 'cjs' ? '.cjs' : '.mjs',

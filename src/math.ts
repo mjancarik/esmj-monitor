@@ -20,7 +20,7 @@ export function medianNoiseReduction(grouping = 5) {
           : array.length;
       const group = array.slice(startIndex, endIndex);
 
-      newArray.push(percentile(50)(group));
+      newArray.push(percentile(50)(group) ?? 0);
     }
 
     return newArray;
@@ -125,14 +125,14 @@ export function last<T = number>(): (array: T[]) => T {
   };
 }
 
-export function avg(): (array: number[]) => number {
+export function avg(): (array: number[]) => number | undefined {
   return function _avg(array: number[]) {
     if (!array.length) {
       return undefined;
     }
 
     const sum = _sum(array);
-    return sum / array.length;
+    return sum !== undefined ? sum / array.length : undefined;
   };
 }
 
